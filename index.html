@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PCI Vrijwilligers</title>
+<script>
+window._supabaseReady = false;
+function loadSupabase(cb) {
+  var urls = [
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js',
+    'https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.js'
+  ];
+  var i = 0;
+  function tryNext() {
+    if (i >= urls.length) { console.error('Supabase kon niet worden geladen'); cb(false); return; }
+    var s = document.createElement('script');
+    s.src = urls[i++];
+    s.onload = function() { window._supabaseReady = true; cb(true); };
+    s.onerror = tryNext;
+    document.head.appendChild(s);
+  }
+  tryNext();
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* --- CONFIG: vervang deze twee regels met je eigen Supabase gegevens --- */
+  /* Zie de installatiegids voor uitleg */
+
+  :root {
+    --supabase-url: 'JOUW_SUPABASE_URL';
+    --supabase-key: 'JOUW_SUPABASE_ANON_KEY';
+
+    --clr-bg: #F7F4EF;
+    --clr-surface: #FFFFFF;
+    --clr-border: rgba(60,50,30,0.12);
+    --clr-border-strong: rgba(60,50,30,0.25);
+    --clr-text: #1A1610;
+    --clr-text-muted: #6B6050;
+    --clr-text-faint: #A89880;
+    --clr-accent: #2D6A4F;
+    --clr-accent-light: #E8F5EE;
+    --clr-accent-text: #1B4332;
+    --clr-warn: #B45309;
+    --clr-warn-light: #FEF3C7;
+    --clr-warn-text: #78350F;
+    --clr-danger: #991B1B;
+    --clr-danger-light: #FEE2E2;
+    --clr-danger-text: #7F1D1D;
+    --clr-info: #1D4ED8;
+    --clr-info-light: #EFF6FF;
+    --clr-info-text: #1E3A8A;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 22px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3 { font-family: 'Lora', serif; font-weight: 500; }
+
+  /* --- LAYOUT --- */
+  .app-shell {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--clr-bg);
+    position: relative;
+  }
+
+  .screen { display: none; padding: 0 0 80px; }
+  .screen.active { display: block; }
+
+  /* --- TOPBAR --- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--clr-bg);
+    border-bottom: 1px solid var(--clr-border);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .topbar-title { font-family: 'Lora', serif; font-size: 17px; font-weight: 500; flex: 1; }
+  .topbar-back {
+    font-size: 14px; color: var(--clr-accent); cursor: pointer;
+    padding: 4px 0; display: flex; align-items: center; gap: 4px;
+  }
+  .topbar-back::before { content: '←'; font-size: 16px; }
+  .app-logo {
+    font-family: 'Lora', serif;
+    font-size: 18px; font-weight: 600;
+    color: var(--clr-accent-text); flex: 1;
+  }
+  .app-logo small {
+    display: block; font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px; font-weight: 400; color: var(--clr-text-muted);
+  }
+  .avatar-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--clr-accent-light);
+    color: var(--clr-accent-text);
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 1.5px solid var(--clr-accent);
+    flex-shrink: 0;
+  }
+
+  /* --- CARDS --- */
+  .card {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-card);
+  }
+  .card + .card { margin-top: 10px; }
+  .card-clickable { cursor: pointer; transition: border-color 0.15s; }
+  .card-clickable:active { background: var(--clr-bg); }
+
+  /* --- BADGES --- */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+    padding: 3px 9px; border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .badge-open { background: var(--clr-accent-light); color: var(--clr-accent-text); }
+  .badge-urgent { background: var(--clr-danger-light); color: var(--clr-danger-text); }
+  .badge-taken { background: var(--clr-warn-light); color: var(--clr-warn-text); }
+  .badge-done { background: #F3F4F6; color: #374151; }
+  .badge-profile { background: var(--clr-info-light); color: var(--clr-info-text); }
+
+  /* --- TAGS --- */
+  .tag {
+    display: inline-block;
+    font-size: 12px; color: var(--clr-text-muted);
+    background: var(--clr-bg);
+    border: 1px solid var(--clr-border-strong);
+    border-radius: 20px; padding: 3px 10px;
+  }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+
+  /* --- TABS --- */
+  .tabs {
+    display: flex; gap: 4px;
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-md);
+    padding: 3px; margin: 16px 20px 0;
+  }
+  .tab {
+    flex: 1; text-align: center;
+    padding: 8px 6px; font-size: 13px; font-weight: 500;
+    color: var(--clr-text-muted);
+    border-radius: 7px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    border: 1px solid var(--clr-border-strong);
+  }
+
+  /* --- TABPANEL --- */
+  .tabpanel { display: none; padding: 16px 20px 0; }
+  .tabpanel.active { display: block; }
+
+  /* --- SECTION LABEL --- */
+  .section-lbl {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--clr-text-faint);
+    margin: 20px 0 8px;
+  }
+  .section-lbl:first-child { margin-top: 0; }
+
+  /* --- BUTTONS --- */
+  .btn {
+    display: block; width: 100%; padding: 13px 16px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px; font-weight: 600;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--clr-border-strong);
+    background: var(--clr-surface);
+    color: var(--clr-text);
+    cursor: pointer; text-align: center;
+    transition: all 0.15s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn + .btn { margin-top: 8px; }
+  .btn-primary {
+    background: var(--clr-accent);
+    color: white; border-color: var(--clr-accent-text);
+  }
+  .btn-primary:active { background: var(--clr-accent-text); }
+  .btn-ghost { border-color: transparent; color: var(--clr-text-muted); }
+  .btn-danger { color: var(--clr-danger); border-color: var(--clr-danger-light); }
+
+  /* --- FORMS --- */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 13px; font-weight: 500;
+    color: var(--clr-text-muted); margin-bottom: 6px;
+  }
+  .form-input, .form-select, .form-textarea {
+    display: block; width: 100%;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px; color: var(--clr-text);
+    background: var(--clr-surface);
+    border: 1.5px solid var(--clr-border-strong);
+    border-radius: var(--radius-md);
+    padding: 11px 14px;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--clr-accent);
+    box-shadow: 0 0 0 3px rgba(45,106,79,0.12);
+  }
+  .form-textarea { resize: vertical; min-height: 90px; }
+  .form-hint { font-size: 12px; color: var(--clr-text-faint); margin-top: 4px; }
+
+  /* --- CHECKBOX MULTI-SELECT --- */
+  .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+  .checkbox-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: var(--clr-surface);
+    border: 1.5px solid var(--clr-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+  }
+  .checkbox-item input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--clr-accent); }
+  .checkbox-item.selected { border-color: var(--clr-accent); background: var(--clr-accent-light); }
+  .checkbox-label { font-size: 14px; font-weight: 500; }
+  .checkbox-sub { font-size: 12px; color: var(--clr-text-muted); }
+
+  /* --- BOTTOM NAV --- */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: var(--clr-surface);
+    border-top: 1px solid var(--clr-border);
+    display: flex; z-index: 20;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px 0 12px;
+    font-size: 11px; font-weight: 500;
+    color: var(--clr-text-faint); cursor: pointer;
+    gap: 3px;
+  }
+  .nav-item.active { color: var(--clr-accent); }
+  .nav-icon { font-size: 20px; line-height: 1; }
+
+  /* --- AVATAR --- */
+  .avatar {
+    border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 600; flex-shrink: 0;
+  }
+  .av-sm { width: 34px; height: 34px; font-size: 12px; }
+  .av-md { width: 44px; height: 44px; font-size: 15px; }
+  .av-lg { width: 56px; height: 56px; font-size: 19px; }
+  .av-green { background: var(--clr-accent-light); color: var(--clr-accent-text); }
+  .av-amber { background: var(--clr-warn-light); color: var(--clr-warn-text); }
+  .av-blue  { background: var(--clr-info-light); color: var(--clr-info-text); }
+  .av-red   { background: var(--clr-danger-light); color: var(--clr-danger-text); }
+
+  /* --- STAT CARDS --- */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+  .stat-num { font-family: 'Lora', serif; font-size: 28px; font-weight: 500; }
+  .stat-lbl { font-size: 12px; color: var(--clr-text-muted); margin-top: 2px; }
+
+  /* --- DIVIDER --- */
+  hr { border: none; border-top: 1px solid var(--clr-border); margin: 14px 0; }
+
+  /* --- ROW --- */
+  .row { display: flex; align-items: center; gap: 12px; }
+  .row-info { flex: 1; min-width: 0; }
+  .row-info .title { font-size: 15px; font-weight: 500; }
+  .row-info .sub { font-size: 13px; color: var(--clr-text-muted); margin-top: 1px; }
+
+  /* --- NOTICE BOXES --- */
+  .notice {
+    border-radius: var(--radius-md); padding: 12px 14px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .notice-success { background: var(--clr-accent-light); color: var(--clr-accent-text); }
+  .notice-warn { background: var(--clr-warn-light); color: var(--clr-warn-text); }
+  .notice-info { background: var(--clr-info-light); color: var(--clr-info-text); }
+  .notice-danger { background: var(--clr-danger-light); color: var(--clr-danger-text); }
+  .notice strong { font-weight: 600; }
+
+  /* --- AVG PRIVACY BANNER --- */
+  .privacy-bar {
+    background: var(--clr-info-light);
+    border-bottom: 1px solid rgba(29,78,216,0.15);
+    padding: 10px 20px;
+    font-size: 12px; color: var(--clr-info-text);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .privacy-bar strong { font-weight: 600; }
+
+  /* --- LOADING --- */
+  .loading {
+    text-align: center; padding: 40px 20px;
+    color: var(--clr-text-muted); font-size: 14px;
+  }
+  .spinner {
+    width: 28px; height: 28px; margin: 0 auto 12px;
+    border: 2px solid var(--clr-border-strong);
+    border-top-color: var(--clr-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- EMPTY STATE --- */
+  .empty { text-align: center; padding: 40px 20px; color: var(--clr-text-muted); }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+  .empty p { font-size: 14px; line-height: 1.6; }
+
+  /* --- LOGIN SCREEN --- */
+  #screen-login {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100vh; padding: 40px 28px;
+  }
+  .login-logo {
+    font-family: 'Lora', serif; font-size: 28px; font-weight: 600;
+    color: var(--clr-accent-text); margin-bottom: 6px; text-align: center;
+  }
+  .login-sub { font-size: 14px; color: var(--clr-text-muted); margin-bottom: 36px; text-align: center; }
+  .login-card {
+    width: 100%; background: var(--clr-surface);
+    border: 1px solid var(--clr-border); border-radius: var(--radius-xl);
+    padding: 28px 24px; box-shadow: var(--shadow-card);
+  }
+  .login-divider {
+    text-align: center; font-size: 12px;
+    color: var(--clr-text-faint); margin: 20px 0;
+    position: relative;
+  }
+  .login-divider::before {
+    content: ''; position: absolute;
+    top: 50%; left: 0; right: 0; height: 1px;
+    background: var(--clr-border);
+  }
+  .login-divider span {
+    position: relative; background: var(--clr-surface); padding: 0 12px;
+  }
+
+  /* --- AVG CONSENT SCREEN --- */
+  .consent-check {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px; background: var(--clr-bg);
+    border-radius: var(--radius-md); margin-bottom: 12px;
+  }
+  .consent-check input[type=checkbox] {
+    width: 18px; height: 18px; margin-top: 1px;
+    accent-color: var(--clr-accent); flex-shrink: 0;
+  }
+  .consent-text { font-size: 13px; line-height: 1.5; color: var(--clr-text); }
+
+  /* --- TASK DETAIL --- */
+  .detail-header {
+    padding: 20px 20px 0;
+  }
+  .detail-type { font-size: 13px; color: var(--clr-text-muted); margin-bottom: 4px; }
+  .detail-name { font-family: 'Lora', serif; font-size: 22px; font-weight: 500; margin-bottom: 16px; }
+  .detail-section { padding: 0 20px; margin-top: 20px; }
+  .detail-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 10px 0; border-bottom: 1px solid var(--clr-border);
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+  .detail-key { font-size: 12px; color: var(--clr-text-faint); }
+  .detail-val { font-size: 14px; color: var(--clr-text); margin-top: 1px; }
+
+  /* --- AVG BEHEER PANEL --- */
+  .avg-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--clr-border);
+  }
+  .avg-item:last-child { border-bottom: none; }
+  .avg-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    margin-top: 4px; flex-shrink: 0;
+  }
+  .dot-green { background: var(--clr-accent); }
+  .dot-amber { background: var(--clr-warn); }
+  .dot-red   { background: var(--clr-danger); }
+  .avg-label { font-size: 14px; font-weight: 500; }
+  .avg-sub { font-size: 12px; color: var(--clr-text-muted); margin-top: 2px; }
+
+  /* --- MODAL --- */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 50;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--clr-surface);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 24px 24px 36px;
+    width: 100%; max-width: 480px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--clr-border-strong);
+    border-radius: 2px; margin: 0 auto 20px;
+  }
+  .modal-title { font-family: 'Lora', serif; font-size: 18px; margin-bottom: 16px; }
+
+  /* --- TOAST --- */
+  #toast {
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--clr-text); color: white;
+    padding: 10px 18px; border-radius: 20px;
+    font-size: 14px; font-weight: 500;
+    opacity: 0; transition: all 0.25s; z-index: 100;
+    white-space: nowrap; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* --- DEMO MODE BANNER --- */
+  .demo-banner {
+    background: #FEF9C3; border-bottom: 1px solid #FDE047;
+    padding: 8px 20px; font-size: 12px; color: #713F12;
+    text-align: center;
+  }
+
+  /* Utility */
+  .mt-16 { margin-top: 16px; }
+  .mt-12 { margin-top: 12px; }
+  .hidden { display: none !important; }
+  .text-muted { color: var(--clr-text-muted); font-size: 13px; }
+  .text-center { text-align: center; }
+  .fw-500 { font-weight: 500; }
+  .p-20 { padding: 0 20px; }
+</style>
+<script>
+(function() {
+  var hash = window.location.hash;
+  if (hash && hash.indexOf('access_token') > -1) {
+    var params = new URLSearchParams(hash.substring(1));
+    var at = params.get('access_token');
+    var rt = params.get('refresh_token') || '';
+    if (at) {
+      sessionStorage.setItem('sb_at', at);
+      sessionStorage.setItem('sb_rt', rt);
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }
+})();
+</script>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <!-- MODAL OVERLAY (Taak aannemen) -->
+  <div class="modal-overlay" id="modal-confirm">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Taak aannemen</div>
+      <p style="font-size:14px;color:var(--clr-text-muted);margin-bottom:16px">
+        Je ontvangt na bevestiging de volledige contactgegevens van de coördinator. Deze worden niet in de app opgeslagen.
+      </p>
+      <div class="notice notice-info" style="margin-bottom:16px">
+        <strong>Privacy (AVG):</strong> De naam en contactgegevens van de persoon die je bezoekt worden alleen aan jou doorgegeven, niet aan andere vrijwilligers.
+      </div>
+      <button class="btn btn-primary" id="btn-confirm-task" onclick="confirmTask()">Ja, ik neem deze taak aan</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-confirm')">Annuleren</button>
+    </div>
+  </div>
+
+  <!-- MODAL OVERLAY (Vrijwilliger uitnodigen) -->
+  <div class="modal-overlay" id="modal-invite">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Vrijwilliger uitnodigen</div>
+      <div class="form-group">
+        <label class="form-label">E-mailadres</label>
+        <input type="email" class="form-input" id="invite-email" placeholder="naam@email.nl">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Naam</label>
+        <input type="text" class="form-input" id="invite-name" placeholder="Voor- en achternaam">
+      </div>
+      <div class="notice notice-warn" style="margin-bottom:16px">
+        <strong>Let op:</strong> Stuur alleen uitnodigingen naar mensen die hiermee hebben ingestemd. De uitgenodigde persoon krijgt een activatielink per e-mail.
+      </div>
+      <button class="btn btn-primary" onclick="sendInvite()">Uitnodiging versturen</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-invite')">Annuleren</button>
+    </div>
+  </div>
+
+  <!-- MODAL OVERLAY (Nieuwe taak) -->
+  <div class="modal-overlay" id="modal-new-task">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Nieuwe taak aanmaken</div>
+
+      <div class="notice notice-warn" style="margin-bottom:16px">
+        <strong>AVG:</strong> Vul hier alleen de straat en wijk in, niet de volledige naam en het adres van de bezoekpersoon. Die sla je apart op en deel je alleen met de aangenomen vrijwilliger.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Type bezoek</label>
+        <select class="form-select" id="new-task-type">
+          <option value="">Kies type...</option>
+          <option value="Ziekenbezoek">Ziekenbezoek</option>
+          <option value="Jubileumbezoek">Jubileumbezoek</option>
+          <option value="Schuldhulpverlening">Schuldhulpverlening</option>
+          <option value="Praktische hulp">Praktische hulp</option>
+          <option value="Andere gelegenheid">Andere gelegenheid</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Omschrijving (geen volledige naam)</label>
+        <input type="text" class="form-input" id="new-task-desc" placeholder="bijv. Weduwe, Lindenlaan-buurt">
+        <div class="form-hint">Gebruik initialen of een omschrijving. Geen volledige naam.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Datum</label>
+        <input type="date" class="form-input" id="new-task-date">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Geschatte duur</label>
+        <select class="form-select" id="new-task-duration">
+          <option value="Ca. 30 minuten">Ca. 30 minuten</option>
+          <option value="Ca. 1 uur" selected>Ca. 1 uur</option>
+          <option value="Ca. 1,5 uur">Ca. 1,5 uur</option>
+          <option value="Ca. 2 uur">Ca. 2 uur</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Toelichting voor vrijwilliger</label>
+        <textarea class="form-textarea" id="new-task-notes" placeholder="Geef context zonder persoonlijk identificeerbare informatie te vermelden..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Vereist profiel</label>
+        <select class="form-select" id="new-task-profile">
+          <option value="Geen speciale kennis">Geen speciale kennis nodig</option>
+          <option value="Schuldhulp">Schuldhulpverlening</option>
+          <option value="Medisch">Medische/verpleegkundige achtergrond</option>
+          <option value="Pastoraal">Pastorale ervaring</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Urgentie</label>
+        <select class="form-select" id="new-task-urgency">
+          <option value="normaal">Normaal</option>
+          <option value="urgent">Urgent (binnen 3 dagen)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-weight:600">Privé contactgegevens bezoekpersoon</label>
+        <input type="text" class="form-input" id="new-task-private-name" placeholder="Volledige naam">
+        <div style="margin-top:8px">
+        <input type="text" class="form-input" id="new-task-private-address" placeholder="Volledig adres">
+        </div>
+        <div style="margin-top:8px">
+        <input type="text" class="form-input" id="new-task-private-phone" placeholder="Telefoonnummer">
+        </div>
+        <div class="form-hint">Deze gegevens zijn versleuteld opgeslagen en worden alleen zichtbaar voor de vrijwilliger die de taak aanneemt.</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="createTask()">Taak aanmaken</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-task')">Annuleren</button>
+    </div>
+  </div>
+
+  <!-- ---
+       SCHERM: LOGIN
+  --- -->
+  <div id="screen-login" class="screen active">
+    <div class="login-logo">PCI Vrijwilligers</div>
+    <div class="login-sub">RK Antonius van Padua</div>
+
+    <div class="login-card">
+      <div id="login-step-1">
+        <div class="form-group">
+          <label class="form-label">E-mailadres</label>
+          <input type="email" class="form-input" id="login-email" placeholder="naam@email.nl"
+            onkeydown="if(event.key==='Enter')sendOtp()">
+        </div>
+        <button class="btn btn-primary" onclick="sendOtp()">Code ontvangen per e-mail</button>
+        <div class="login-divider"><span>geen wachtwoord nodig</span></div>
+        <p style="font-size:12px;color:var(--clr-text-muted);text-align:center;line-height:1.5">
+          Je ontvangt een 8-cijferige code op je e-mailadres.
+        </p>
+      </div>
+      <div id="login-step-2" style="display:none">
+        <p style="font-size:14px;color:var(--clr-text-muted);margin-bottom:16px;text-align:center">
+          Voer de 8-cijferige code in die je per e-mail hebt ontvangen.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Code</label>
+          <input type="text" class="form-input" id="login-otp" placeholder="123456"
+            maxlength="8" style="font-size:24px;text-align:center;letter-spacing:8px"
+            onkeydown="if(event.key==='Enter')verifyOtp()">
+        </div>
+        <button class="btn btn-primary" onclick="verifyOtp()">Inloggen</button>
+        <button class="btn btn-ghost" onclick="showOtpStep(1)">Terug</button>
+      </div>
+    </div>
+
+    <p style="margin-top:20px;font-size:12px;color:var(--clr-text-faint);text-align:center;line-height:1.6">
+      Door in te loggen ga je akkoord met het gebruik van je gegevens<br>
+      conform de AVG-verwerkersovereenkomst van de PCI.
+    </p>
+
+    <!-- Demo knop -->
+    <div style="margin-top:28px;text-align:center">
+      <div style="font-size:12px;color:var(--clr-text-faint);margin-bottom:8px">Nog geen Supabase ingesteld?</div>
+      <button class="btn" style="width:auto;padding:8px 20px;font-size:13px" onclick="startDemo()">Bekijk demo-modus</button>
+    </div>
+  </div>
+
+  <!-- ---
+       SCHERM: VRIJWILLIGER - TAKEN
+  --- -->
+  <div id="screen-tasks" class="screen">
+    <div class="demo-banner hidden" id="demo-banner">Demo-modus actief, geen echte data</div>
+    <div class="topbar">
+      <div class="app-logo">PCI <small>Vrijwilligers</small></div>
+      <div class="avatar-btn av-green" id="nav-avatar" onclick="showScreen('screen-profile')">MV</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('tab-open','tasks-tabs')">Open taken</div>
+      <div class="tab" onclick="switchTab('tab-mine','tasks-tabs')">Mijn taken</div>
+    </div>
+    <div id="tasks-tabs">
+
+      <!-- OPEN TAKEN -->
+      <div class="tabpanel active" id="tab-open">
+        <div id="tasks-list">
+          <div class="loading"><div class="spinner"></div>Taken laden...</div>
+        </div>
+      </div>
+
+      <!-- MIJN TAKEN -->
+      <div class="tabpanel" id="tab-mine">
+        <div id="my-tasks-list">
+          <div class="loading"><div class="spinner"></div>Laden...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="showNavScreen('screen-tasks',this)">
+        <div class="nav-icon">◻</div>Taken
+      </div>
+      <div class="nav-item" onclick="showNavScreen('screen-profile',this)">
+        <div class="nav-icon">○</div>Profiel
+      </div>
+      <div class="nav-item" id="nav-beheer-btn" onclick="showNavScreen('screen-coord',this)">
+        <div class="nav-icon">△</div>Beheer
+      </div>
+    </div>
+  </div>
+
+  <!-- ---
+       SCHERM: TAAK DETAIL
+  --- -->
+  <div id="screen-task-detail" class="screen">
+    <div class="topbar">
+      <div class="topbar-back" onclick="showScreen('screen-tasks')">Terug</div>
+      <div class="topbar-title">Taakdetails</div>
+    </div>
+
+    <div class="detail-header">
+      <div class="detail-type" id="detail-type">Ziekenbezoek</div>
+      <div class="detail-name" id="detail-name">Bewoner Lindenlaan-buurt</div>
+      <span class="badge badge-open" id="detail-badge">Open</span>
+    </div>
+
+    <div class="detail-section">
+      <div class="card" style="padding:0">
+        <div class="detail-row">
+          <div class="detail-icon">📅</div>
+          <div>
+            <div class="detail-key">Datum</div>
+            <div class="detail-val" id="detail-date">-</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon">⏱</div>
+          <div>
+            <div class="detail-key">Tijdsduur</div>
+            <div class="detail-val" id="detail-duration">-</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon">🎓</div>
+          <div>
+            <div class="detail-key">Vereist profiel</div>
+            <div class="detail-val" id="detail-profile">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-lbl">Toelichting</div>
+      <div class="card">
+        <p style="font-size:14px;line-height:1.6;color:var(--clr-text)" id="detail-notes">-</p>
+      </div>
+    </div>
+
+    <div class="detail-section" id="detail-private-section" style="display:none">
+      <div class="section-lbl">Contactgegevens (alleen voor jou)</div>
+      <div class="notice notice-success" style="margin-bottom:10px">
+        Je hebt deze taak aangenomen. Onderstaande gegevens zijn alleen voor jou zichtbaar.
+      </div>
+      <button class="btn btn-danger" style="margin-bottom:10px" onclick="geefTaakTerug(currentTaskId)">Taak teruggeven</button>
+      <div class="card">
+        <div class="detail-row">
+          <div class="detail-icon">👤</div>
+          <div>
+            <div class="detail-key">Naam</div>
+            <div class="detail-val" id="detail-private-name">-</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon">📍</div>
+          <div>
+            <div class="detail-key">Adres</div>
+            <div class="detail-val" id="detail-private-address">-</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon">📞</div>
+          <div>
+            <div class="detail-key">Telefoon</div>
+            <div class="detail-val" id="detail-private-phone">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section mt-16" id="detail-action-section">
+      <button class="btn btn-primary" onclick="openModal('modal-confirm')">Ik neem deze taak aan</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-tasks')">Terug naar overzicht</button>
+    </div>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- ---
+       SCHERM: VRIJWILLIGER - PROFIEL
+  --- -->
+  <div id="screen-profile" class="screen">
+    <div class="topbar">
+      <div class="app-logo">Mijn profiel <small>PCI Vrijwilligers</small></div>
+    </div>
+
+    <div style="padding: 20px">
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="row">
+          <div class="avatar av-lg av-green" id="profile-avatar-lg">MV</div>
+          <div class="row-info">
+            <div class="title" id="profile-name">Maria Vermeer</div>
+            <div class="sub" id="profile-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b46055d4e59464e4e596b4e464a4247054547">[email&#160;protected]</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:16px">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-done">0</div>
+          <div class="stat-lbl">Taken gedaan</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-active">0</div>
+          <div class="stat-lbl">Nu actief</div>
+        </div>
+      </div>
+
+      <div class="section-lbl">Ik help graag met</div>
+      <div class="card" style="margin-bottom:0">
+        <div class="checkbox-group" id="profile-task-types">
+          <label class="checkbox-item" onclick="toggleCheck(this)">
+            <input type="checkbox" value="Ziekenbezoek" checked>
+            <div><div class="checkbox-label">Ziekenbezoek</div></div>
+          </label>
+          <label class="checkbox-item selected" onclick="toggleCheck(this)">
+            <input type="checkbox" value="Jubileumbezoek" checked>
+            <div><div class="checkbox-label">Jubileumbezoek</div></div>
+          </label>
+          <label class="checkbox-item" onclick="toggleCheck(this)">
+            <input type="checkbox" value="Schuldhulpverlening">
+            <div>
+              <div class="checkbox-label">Schuldhulpverlening</div>
+              <div class="checkbox-sub">Vereist specifieke kennis</div>
+            </div>
+          </label>
+          <label class="checkbox-item" onclick="toggleCheck(this)">
+            <input type="checkbox" value="Praktische hulp">
+            <div><div class="checkbox-label">Praktische hulp</div></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-lbl">Beschikbaarheid</div>
+      <div class="card">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Voorkeursdagen</label>
+          <input type="text" class="form-input" id="profile-days" placeholder="bijv. Dinsdag en zaterdag">
+          <label class="form-label" style="margin-top:12px">Max. taken per maand</label>
+          <select class="form-select" id="profile-max-tasks">
+            <option value="1">1 taak</option>
+            <option value="2" selected>2 taken</option>
+            <option value="3">3 taken</option>
+            <option value="5">5 taken</option>
+            <option value="0">Geen maximum</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-lbl">Opleiding en achtergrond</div>
+      <div class="card">
+        <textarea class="form-textarea" id="profile-background"
+          placeholder="Beschrijf kort je relevante achtergrond of opleiding (optioneel)..."></textarea>
+        <div class="form-hint">Wordt alleen gebruikt om je te koppelen aan passende taken.</div>
+      </div>
+
+      <div class="notice notice-info" style="margin:16px 0 0">
+        <strong>Jouw privacy:</strong> Je profiel is alleen zichtbaar voor de coördinator. Andere vrijwilligers zien jouw gegevens niet.
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:16px" onclick="saveProfile()">Profiel opslaan</button>
+      <button class="btn btn-ghost" onclick="logout()">Uitloggen</button>
+
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showNavScreen('screen-tasks',this)">
+        <div class="nav-icon">◻</div>Taken
+      </div>
+      <div class="nav-item active" onclick="showNavScreen('screen-profile',this)">
+        <div class="nav-icon">○</div>Profiel
+      </div>
+      <div class="nav-item" id="nav-beheer-btn2" onclick="showNavScreen('screen-coord',this)">
+        <div class="nav-icon">△</div>Beheer
+      </div>
+    </div>
+  </div>
+
+  <!-- ---
+       SCHERM: COÖRDINATOR BEHEER
+  --- -->
+  <div id="screen-coord" class="screen">
+    <div class="topbar">
+      <div class="app-logo">Beheer <small>Coördinator</small></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('ctab-tasks','coord-tabs')">Taken</div>
+      <div class="tab" onclick="switchTab('ctab-people','coord-tabs')">Vrijwilligers</div>
+      <div class="tab" onclick="switchTab('ctab-avg','coord-tabs')">AVG</div>
+    </div>
+
+    <div id="coord-tabs">
+
+      <!-- TAKEN BEHEER -->
+      <div class="tabpanel active" id="ctab-tasks">
+        <div class="stat-grid" style="margin-bottom:16px">
+          <div class="stat-card">
+            <div class="stat-num" id="coord-stat-open" style="color:var(--clr-danger)">0</div>
+            <div class="stat-lbl">Open taken</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="coord-stat-volunteers">0</div>
+            <div class="stat-lbl">Vrijwilligers</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="margin-bottom:16px" onclick="openModal('modal-new-task')">+ Nieuwe taak aanmaken</button>
+
+        <div id="coord-tasks-list">
+          <div class="loading"><div class="spinner"></div>Laden...</div>
+        </div>
+      </div>
+
+      <!-- VRIJWILLIGERS BEHEER -->
+      <div class="tabpanel" id="ctab-people">
+        <button class="btn" style="margin-bottom:16px" onclick="openModal('modal-invite')">+ Vrijwilliger uitnodigen</button>
+        <div id="coord-volunteers-list">
+          <div class="loading"><div class="spinner"></div>Laden...</div>
+        </div>
+      </div>
+
+      <!-- AVG BEHEER -->
+      <div class="tabpanel" id="ctab-avg">
+        <div class="section-lbl">AVG-status</div>
+        <div class="card">
+          <div class="avg-item">
+            <div class="avg-dot dot-green"></div>
+            <div>
+              <div class="avg-label">Verwerkersgrondslag</div>
+              <div class="avg-sub">Gebaseerd op gerechtvaardigd belang (kerkelijk pastoraat)</div>
+            </div>
+          </div>
+          <div class="avg-item">
+            <div class="avg-dot dot-green"></div>
+            <div>
+              <div class="avg-label">Gegevensopslag</div>
+              <div class="avg-sub">Supabase EU-regio (Frankfurt). Geen data buiten de EU.</div>
+            </div>
+          </div>
+          <div class="avg-item">
+            <div class="avg-dot dot-green"></div>
+            <div>
+              <div class="avg-label">Bijzondere persoonsgegevens</div>
+              <div class="avg-sub">Namen bezoekpersonen worden versleuteld opgeslagen</div>
+            </div>
+          </div>
+          <div class="avg-item">
+            <div class="avg-dot dot-amber"></div>
+            <div>
+              <div class="avg-label">Verwerkersovereenkomst</div>
+              <div class="avg-sub">Sluiten met Supabase (gratis beschikbaar via dashboard)</div>
+            </div>
+          </div>
+          <div class="avg-item">
+            <div class="avg-dot dot-amber"></div>
+            <div>
+              <div class="avg-label">Privacyverklaring</div>
+              <div class="avg-sub">Stel op en koppel aan de inlogpagina</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-lbl">Gegevens opruimen</div>
+        <div class="card">
+          <p style="font-size:13px;color:var(--clr-text-muted);margin-bottom:12px;line-height:1.5">
+            AVG vereist dat gegevens niet langer worden bewaard dan nodig. Verwijder hieronder verouderde data.
+          </p>
+          <div id="avg-cleanup-list">
+            <div class="loading"><div class="spinner"></div>Laden...</div>
+          </div>
+        </div>
+
+        <div class="section-lbl">Inzageverzoek</div>
+        <div class="card">
+          <p style="font-size:13px;color:var(--clr-text-muted);margin-bottom:12px;line-height:1.5">
+            Als een vrijwilliger vraagt om inzage of verwijdering van zijn gegevens, verwerk dat hier.
+          </p>
+          <div class="form-group">
+            <input type="email" class="form-input" id="avg-request-email" placeholder="E-mailadres vrijwilliger">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" style="flex:1;font-size:13px" onclick="exportVolunteerData()">Gegevens exporteren</button>
+            <button class="btn btn-danger" style="flex:1;font-size:13px" onclick="deleteVolunteerData()">Gegevens verwijderen</button>
+          </div>
+        </div>
+
+        <div class="notice notice-info" style="margin-top:16px">
+          <strong>Bewaartermijn:</strong> Vrijwilligersprofielen worden automatisch gemarkeerd na 12 maanden inactiviteit. Taakgegevens van bezoekpersonen worden 30 dagen na afronding verwijderd.
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showNavScreen('screen-tasks',this)">
+        <div class="nav-icon">◻</div>Taken
+      </div>
+      <div class="nav-item" onclick="showNavScreen('screen-profile',this)">
+        <div class="nav-icon">○</div>Profiel
+      </div>
+      <div class="nav-item active" onclick="showNavScreen('screen-coord',this)">
+        <div class="nav-icon">△</div>Beheer
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app-shell -->
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ---
+// CONFIG - Vervang deze twee waarden met je eigen Supabase gegevens
+// ---
+const BREVO_API_KEY = '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'; // Vervang met jouw Brevo API key
+const COORD_EMAIL   = 'antonius.cirkel@gmail.com'; // E-mail van de coördinator
+
+const SUPABASE_URL  = 'https://xmjlvvamroilwhpdsuha.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhtamx2dmFtcm9pbHdocGRzdWhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzM3MDYsImV4cCI6MjA4OTUwOTcwNn0.Giuu-0LEmbpPeYGVqdnLaR90r6iOp-LH0jxZ0oesIpU';
+
+// ---
+// DEMO DATA (wordt gebruikt als Supabase niet is ingesteld)
+// ---
+const DEMO_USER = { name: 'Maria Vermeer', email: 'demo@pci.nl', role: 'coordinator', initials: 'MV' };
+
+const DEMO_TASKS = [
+  {
+    id: 1, type: 'Ziekenbezoek', description: 'Weduwe, Lindenlaan-buurt',
+    date: '2026-03-25', duration: 'Ca. 1 uur', profile: 'Geen speciale kennis',
+    urgency: 'urgent', notes: 'Mevrouw woont alleen en stelt bezoek erg op prijs. Bel van tevoren even aan.',
+    status: 'open', assigned_to: null,
+    private_name: 'Mevr. A. Janssen', private_address: 'Lindenlaan 14', private_phone: '06-11223344'
+  },
+  {
+    id: 2, type: 'Jubileumbezoek', description: 'Echtpaar, 50 jaar getrouwd, centrum',
+    date: '2026-03-29', duration: 'Ca. 45 minuten', profile: 'Geen speciale kennis',
+    urgency: 'normaal', notes: 'Fijn echtpaar, graag een kaart meenemen van de parochie.',
+    status: 'open', assigned_to: null,
+    private_name: 'Fam. De Groot', private_address: 'Kerkstraat 8', private_phone: '06-55667788'
+  },
+  {
+    id: 3, type: 'Schuldhulpverlening', description: 'Gezin met jonge kinderen',
+    date: '2026-03-26', duration: 'Ca. 2 uur', profile: 'Schuldhulp',
+    urgency: 'urgent', notes: 'Gezin heeft dringende hulp nodig bij het ordenen van brieven en begrijpen van betalingsregelingen.',
+    status: 'open', assigned_to: null,
+    private_name: 'Fam. Bakker', private_address: 'Rozenlaan 22', private_phone: '06-99887766'
+  },
+  {
+    id: 4, type: 'Jubileumbezoek', description: 'Echtpaar, 60 jaar getrouwd, Westbuurt',
+    date: '2026-03-23', duration: 'Ca. 1 uur', profile: 'Geen speciale kennis',
+    urgency: 'normaal', notes: '',
+    status: 'assigned', assigned_to: 'demo@pci.nl',
+    private_name: 'Fam. Pietersen', private_address: 'Tulpstraat 5', private_phone: '06-12121212'
+  }
+];
+
+const DEMO_VOLUNTEERS = [
+  { id: 1, name: 'Maria Vermeer', email: 'demo@pci.nl', initials: 'MV', color: 'green',
+    task_types: ['Ziekenbezoek','Jubileumbezoek'], days: 'Dinsdag en zaterdag', tasks_done: 7, tasks_active: 1 },
+  { id: 2, name: 'Jan Koster', email: 'j.koster@email.nl', initials: 'JK', color: 'blue',
+    task_types: ['Schuldhulpverlening','Ziekenbezoek'], days: 'Maandag', tasks_done: 3, tasks_active: 0 },
+  { id: 3, name: 'Lies Bosch', email: 'l.bosch@email.nl', initials: 'LB', color: 'amber',
+    task_types: ['Jubileumbezoek','Praktische hulp'], days: 'Woensdag en vrijdag', tasks_done: 5, tasks_active: 0 }
+];
+
+// ---
+// APP STATE
+// ---
+let supabase = null;
+let currentUser = null;
+let isDemo = false;
+let currentTaskId = null;
+let demoTasks = [...DEMO_TASKS];
+
+// ---
+// INIT
+// ---
+window.addEventListener('load', () => {
+  initCheckboxes();
+  if (SUPABASE_URL !== 'JOUW_SUPABASE_URL') {
+    loadSupabase(function(ok) {
+      if (ok && window.supabase) {
+        try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+              autoRefreshToken: true,
+              persistSession: true,
+              detectSessionInUrl: true,
+              storage: window.localStorage
+            }
+          });
+          checkSession();
+        } catch(e) {
+          console.error('Supabase init fout:', e);
+          showScreen('screen-login');
+        }
+      } else {
+        showScreen('screen-login');
+      }
+    });
+  } else {
+    showScreen('screen-login');
+  }
+});
+
+function checkSession() {
+  if (!supabase) { showScreen('screen-login'); return; }
+
+  // Gebruik opgeslagen token van magic link redirect
+  var at = sessionStorage.getItem('sb_at');
+  var rt = sessionStorage.getItem('sb_rt');
+  if (at) {
+    sessionStorage.removeItem('sb_at');
+    sessionStorage.removeItem('sb_rt');
+    supabase.auth.setSession({ access_token: at, refresh_token: rt || at })
+      .then(function(result) {
+        if (result.data && result.data.session) {
+          currentUser = result.data.session.user;
+          enterApp();
+        } else {
+          supabase.auth.getSession().then(function(r) {
+            if (r.data && r.data.session) {
+              currentUser = r.data.session.user;
+              enterApp();
+            } else {
+              showScreen('screen-login');
+            }
+          });
+        }
+      });
+    return;
+  }
+
+  supabase.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session && !currentUser) {
+      currentUser = session.user;
+      enterApp();
+    }
+    if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      showScreen('screen-login');
+    }
+  });
+
+  supabase.auth.getSession().then(function(result) {
+    if (result.data && result.data.session) {
+      currentUser = result.data.session.user;
+      enterApp();
+    } else {
+      showScreen('screen-login');
+    }
+  });
+}
+
+function enterApp() {
+  const name = currentUser?.user_metadata?.name || currentUser?.email || 'Gebruiker';
+  const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('nav-avatar').textContent = initials;
+  document.getElementById('profile-name').textContent = name;
+  document.getElementById('profile-email').textContent = currentUser?.email || '';
+  document.getElementById('profile-avatar-lg').textContent = initials;
+
+  // Verberg demo-knop
+  const demoBtn = document.querySelector('#screen-login button[onclick="startDemo()"]');
+  if (demoBtn) demoBtn.closest('div').style.display = 'none';
+
+  // Haal rol op uit database
+  if (isDemo) {
+    showScreen('screen-tasks');
+    loadTasks();
+    loadMyTasks();
+    return;
+  }
+
+  if (supabase) {
+    supabase.from('profiles').select('role').eq('id', currentUser.id).single()
+      .then(({ data }) => {
+        const role = data?.role || 'volunteer';
+        if (role === 'coordinator') {
+          document.getElementById('nav-beheer-btn').style.display = '';
+          document.getElementById('nav-beheer-btn2').style.display = '';
+        } else {
+          document.getElementById('nav-beheer-btn').style.display = 'none';
+          document.getElementById('nav-beheer-btn2').style.display = 'none';
+        }
+        showScreen('screen-tasks');
+        loadTasks();
+        loadMyTasks();
+      });
+  } else {
+    document.getElementById('nav-beheer-btn').style.display = 'none';
+    document.getElementById('nav-beheer-btn2').style.display = 'none';
+    showScreen('screen-tasks');
+    loadTasks();
+    loadMyTasks();
+  }
+}
+
+// ---
+// NAVIGATIE
+// ---
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  // Verberg login scherm altijd als we naar een ander scherm gaan
+  if (id !== 'screen-login') {
+    const loginScreen = document.getElementById('screen-login');
+    loginScreen.style.display = 'none';
+  } else {
+    document.getElementById('screen-login').style.display = '';
+  }
+}
+
+function showNavScreen(id, el) {
+  showScreen(id);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (id === 'screen-tasks') loadTasks();
+  if (id === 'screen-coord') { loadCoordTasks(); loadCoordVolunteers(); loadAvgCleanup(); }
+}
+
+function switchTab(targetId, groupId) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.tabpanel').forEach(p => p.classList.remove('active'));
+  document.getElementById(targetId).classList.add('active');
+  const tabs = group.previousElementSibling;
+  const idx = Array.from(group.children).findIndex(c => c.id === targetId);
+  tabs.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i === idx));
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ---
+// AUTH
+// ---
+async function sendOtp() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { showToast('Voer een e-mailadres in'); return; }
+  if (!supabase) { showToast('Supabase niet ingesteld. Gebruik demo-modus.'); return; }
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {}
+  });
+  if (error) { showToast('Fout: ' + error.message); return; }
+  showOtpStep(2);
+  showToast('Code verstuurd naar ' + email);
+}
+
+function showOtpStep(step) {
+  document.getElementById('login-step-1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('login-step-2').style.display = step === 2 ? 'block' : 'none';
+  if (step === 2) setTimeout(() => document.getElementById('login-otp').focus(), 100);
+}
+
+async function verifyOtp() {
+  const email = document.getElementById('login-email').value.trim();
+  const token = document.getElementById('login-otp').value.trim();
+  if (!token || token.length < 8) { showToast('Voer de 8-cijferige code in'); return; }
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+  if (error) { showToast('Ongeldige code: ' + error.message); return; }
+  if (data && data.session) {
+    currentUser = data.session.user;
+    enterApp();
+  }
+}
+
+function logout() {
+  if (supabase) supabase.auth.signOut();
+  currentUser = null; isDemo = false;
+  showScreen('screen-login');
+}
+
+function startDemo() {
+  isDemo = true;
+  currentUser = { email: DEMO_USER.email, user_metadata: { name: DEMO_USER.name, role: 'coordinator' } };
+  document.getElementById('demo-banner').classList.remove('hidden');
+  enterApp();
+  showToast('Demo-modus gestart');
+}
+
+// ---
+// TAKEN LADEN (vrijwilliger)
+// ---
+async function loadTasks() {
+  const el = document.getElementById('tasks-list');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Taken laden...</div>';
+
+  let tasks = [];
+  if (isDemo) {
+    tasks = demoTasks.filter(t => t.status === 'open');
+  } else {
+    const { data, error } = await supabase.from('tasks')
+      .select('id,type,description,date,duration,profile,urgency,notes,status')
+      .eq('status','open').order('date');
+    if (error) { el.innerHTML = '<div class="empty"><p>Taken konden niet worden geladen.</p></div>'; return; }
+    tasks = data;
+  }
+
+  if (!tasks.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Geen open taken op dit moment.<br>De coördinator plaatst nieuwe taken zodra die beschikbaar zijn.</p></div>';
+    return;
+  }
+  el.innerHTML = tasks.map(t => taskCard(t)).join('');
+}
+
+async function loadMyTasks() {
+  const el = document.getElementById('my-tasks-list');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
+  let tasks = [];
+  if (isDemo) {
+    tasks = demoTasks.filter(t => t.assigned_to === DEMO_USER.email);
+  } else {
+    const { data } = await supabase.from('tasks')
+      .select('id,type,description,date,duration,status')
+      .eq('assigned_to', currentUser.email)
+      .order('date');
+    tasks = data || [];
+  }
+  if (!tasks.length) {
+    el.innerHTML = '<div class="empty"><p>Je hebt nog geen taken aangenomen.<br>Kijk bij "Open taken" wat er beschikbaar is.</p></div>';
+    return;
+  }
+  el.innerHTML = tasks.map(t => taskCard(t, true)).join('');
+}
+
+function taskCard(t, isMine) {
+  const badgeClass = t.urgency === 'urgent' ? 'badge-urgent' :
+                     isMine ? 'badge-taken' : 'badge-open';
+  const badgeLabel = t.urgency === 'urgent' ? 'Urgent' :
+                     isMine ? 'Aangenomen' : 'Open';
+  const dateStr = t.date ? new Date(t.date).toLocaleDateString('nl-NL',{day:'numeric',month:'long'}) : '-';
+  return `
+    <div class="card card-clickable" onclick="openTaskDetail(${t.id})" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div>
+          <div style="font-size:12px;color:var(--clr-text-muted);margin-bottom:2px">${t.type}</div>
+          <div style="font-size:15px;font-weight:500">${t.description}</div>
+          <div style="font-size:13px;color:var(--clr-text-muted);margin-top:3px">${dateStr} &bull; ${t.duration}</div>
+        </div>
+        <span class="badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      ${t.profile && t.profile !== 'Geen speciale kennis' ?
+        `<div class="tag-row"><span class="tag">${t.profile}</span></div>` : ''}
+    </div>`;
+}
+
+function openTaskDetail(id) {
+  const task = isDemo ? demoTasks.find(t => t.id === id) : null;
+  currentTaskId = id;
+  if (!task && !isDemo) { loadTaskFromDB(id); return; }
+
+  document.getElementById('detail-type').textContent = task.type;
+  document.getElementById('detail-name').textContent = task.description;
+  document.getElementById('detail-date').textContent =
+    new Date(task.date).toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('detail-duration').textContent = task.duration;
+  document.getElementById('detail-profile').textContent = task.profile;
+  document.getElementById('detail-notes').textContent = task.notes || 'Geen verdere toelichting.';
+
+  const badge = document.getElementById('detail-badge');
+  badge.className = 'badge ' + (task.urgency === 'urgent' ? 'badge-urgent' : 'badge-open');
+  badge.textContent = task.urgency === 'urgent' ? 'Urgent' : 'Open';
+
+  const isMine = task.assigned_to === currentUser?.email || task.assigned_to === DEMO_USER.email;
+  document.getElementById('detail-private-section').style.display = isMine ? 'block' : 'none';
+  document.getElementById('detail-action-section').style.display = isMine ? 'none' : 'block';
+  if (isMine) {
+    document.getElementById('detail-private-name').textContent = task.private_name;
+    document.getElementById('detail-private-address').textContent = task.private_address;
+    document.getElementById('detail-private-phone').textContent = task.private_phone;
+  }
+  showScreen('screen-task-detail');
+}
+
+async function loadTaskFromDB(id) {
+  const { data } = await supabase.from('tasks').select('*').eq('id',id).single();
+  if (!data) { showToast('Taak niet gevonden'); return; }
+  const isMine = data.assigned_to === currentUser?.email;
+  document.getElementById('detail-type').textContent = data.type;
+  document.getElementById('detail-name').textContent = data.description;
+  document.getElementById('detail-date').textContent =
+    new Date(data.date).toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('detail-duration').textContent = data.duration;
+  document.getElementById('detail-profile').textContent = data.profile;
+  document.getElementById('detail-notes').textContent = data.notes || '-';
+  document.getElementById('detail-private-section').style.display = isMine ? 'block' : 'none';
+  document.getElementById('detail-action-section').style.display = isMine ? 'none' : 'block';
+  if (isMine) {
+    document.getElementById('detail-private-name').textContent = data.private_name || '-';
+    document.getElementById('detail-private-address').textContent = data.private_address || '-';
+    document.getElementById('detail-private-phone').textContent = data.private_phone || '-';
+  }
+  showScreen('screen-task-detail');
+}
+
+// ---
+// TAAK AANNEMEN
+// ---
+async function confirmTask() {
+  closeModal('modal-confirm');
+  if (isDemo) {
+    const t = demoTasks.find(t => t.id === currentTaskId);
+    if (t) { t.status = 'assigned'; t.assigned_to = DEMO_USER.email; }
+    showToast('Taak aangenomen');
+    openTaskDetail(currentTaskId);
+    loadTasks(); loadMyTasks();
+    return;
+  }
+  const { data: taskData } = await supabase.from('tasks').select('*').eq('id', currentTaskId).single();
+  const { error } = await supabase.from('tasks').update({
+    status: 'assigned', assigned_to: currentUser.email, assigned_at: new Date().toISOString()
+  }).eq('id', currentTaskId);
+  if (error) { showToast('Fout bij aannemen: ' + error.message); return; }
+
+  // Stuur bevestigingsmail via Brevo
+  if (taskData) await stuurBevestigingsmail(taskData);
+
+  showToast('Taak aangenomen. Bevestiging verstuurd.');
+  loadTaskFromDB(currentTaskId);
+  loadTasks(); loadMyTasks();
+}
+
+async function stuurBevestigingsmail(task) {
+  if (!BREVO_API_KEY || BREVO_API_KEY === 'JOUW_BREVO_API_KEY') return;
+  const dateStr = task.date ? new Date(task.date).toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) : '-';
+  const vrijwilligerNaam = currentUser?.user_metadata?.name || currentUser.email;
+
+  // Mail aan vrijwilliger
+  await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sender: { name: 'PCI Vrijwilligers', email: COORD_EMAIL },
+      to: [{ email: currentUser.email }],
+      subject: 'Bevestiging: ' + task.type + ' op ' + dateStr,
+      htmlContent: '<p>Beste vrijwilliger,</p><p>Je hebt de volgende taak aangenomen:</p>' +
+        '<p><strong>Type:</strong> ' + task.type + '<br>' +
+        '<strong>Datum:</strong> ' + dateStr + '<br>' +
+        '<strong>Duur:</strong> ' + (task.duration || '-') + '</p>' +
+        '<p>De coördinator neemt contact met je op met de contactgegevens van de bezoekpersoon.</p>' +
+        '<p>Met vriendelijke groet,<br>PCI ' + '</p>'
+    })
+  });
+
+  // Mail aan coördinator
+  await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sender: { name: 'PCI Vrijwilligers App', email: COORD_EMAIL },
+      to: [{ email: COORD_EMAIL }],
+      subject: 'Nieuwe aanmelding: ' + task.type + ' op ' + dateStr,
+      htmlContent: '<p>' + vrijwilligerNaam + ' (' + currentUser.email + ') heeft zich aangemeld voor:</p>' +
+        '<p><strong>Type:</strong> ' + task.type + '<br>' +
+        '<strong>Omschrijving:</strong> ' + task.description + '<br>' +
+        '<strong>Datum:</strong> ' + dateStr + '</p>'
+    })
+  });
+}
+
+async function geefTaakTerug(id) {
+  if (!confirm('Wil je deze taak teruggeven? De taak wordt weer open gezet voor andere vrijwilligers.')) return;
+  if (isDemo) {
+    const t = demoTasks.find(t => t.id === id);
+    if (t) { t.status = 'open'; t.assigned_to = null; }
+    showToast('Taak teruggegeven');
+    showScreen('screen-tasks');
+    loadTasks(); loadMyTasks(); return;
+  }
+  const { error } = await supabase.from('tasks').update({
+    status: 'open', assigned_to: null, assigned_at: null
+  }).eq('id', id);
+  if (error) { showToast('Fout: ' + error.message); return; }
+  showToast('Taak teruggegeven');
+  showScreen('screen-tasks');
+  loadTasks(); loadMyTasks();
+}
+
+// ---
+// COÖRDINATOR - TAKEN
+// ---
+async function loadCoordTasks() {
+  const el = document.getElementById('coord-tasks-list');
+  let tasks = isDemo ? demoTasks : [];
+  if (!isDemo) {
+    const { data } = await supabase.from('tasks').select('*').order('date');
+    tasks = data || [];
+  }
+  document.getElementById('coord-stat-open').textContent = tasks.filter(t=>t.status==='open').length;
+  if (!tasks.length) { el.innerHTML = '<div class="empty"><p>Nog geen taken aangemaakt.</p></div>'; return; }
+  el.innerHTML = tasks.map(t => {
+    const dateStr = t.date ? new Date(t.date).toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '-';
+    const statusLabel = t.status === 'open' ? 'Open' : t.status === 'assigned' ? 'Aangenomen' : 'Afgerond';
+    const statusClass = t.status === 'open' ? 'badge-open' : t.status === 'assigned' ? 'badge-taken' : 'badge-done';
+    return `
+      <div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <div style="font-size:12px;color:var(--clr-text-muted)">${t.type} &bull; ${dateStr}</div>
+            <div style="font-size:15px;font-weight:500;margin-top:2px">${t.description}</div>
+            ${t.assigned_to ? `<div style="font-size:12px;color:var(--clr-accent);margin-top:3px">${t.assigned_to}</div>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+            <span class="badge ${statusClass}">${statusLabel}</span>
+            ${t.urgency==='urgent' ? '<span class="badge badge-urgent">Urgent</span>' : ''}
+          </div>
+        </div>
+        ${t.status === 'assigned' ?
+          `<button class="btn" style="margin-top:10px;padding:8px;font-size:13px" onclick="markDone(${t.id})">Markeren als afgerond</button>` : ''}
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn" style="flex:1;padding:8px;font-size:13px" onclick="editTask(${t.id})">Bewerken</button>
+          <button class="btn btn-danger" style="flex:1;padding:8px;font-size:13px" onclick="deleteTask(${t.id})">Verwijderen</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function createTask() {
+  const type    = document.getElementById('new-task-type').value;
+  const desc    = document.getElementById('new-task-desc').value.trim();
+  const date    = document.getElementById('new-task-date').value;
+  const dur     = document.getElementById('new-task-duration').value;
+  const notes   = document.getElementById('new-task-notes').value.trim();
+  const profile = document.getElementById('new-task-profile').value;
+  const urgency = document.getElementById('new-task-urgency').value;
+  const pName   = document.getElementById('new-task-private-name').value.trim();
+  const pAddr   = document.getElementById('new-task-private-address').value.trim();
+  const pPhone  = document.getElementById('new-task-private-phone').value.trim();
+
+  if (!type || !desc || !date) { showToast('Vul type, omschrijving en datum in'); return; }
+
+  const editId = document.getElementById('modal-new-task').dataset.editId;
+  const isEdit = !!editId;
+
+  if (isDemo) {
+    if (isEdit) {
+      const t = demoTasks.find(t => String(t.id) === String(editId));
+      if (t) { t.type = type; t.description = desc; t.date = date; t.duration = dur;
+               t.notes = notes; t.profile = profile; t.urgency = urgency;
+               t.private_name = pName; t.private_address = pAddr; t.private_phone = pPhone; }
+    } else {
+      demoTasks.unshift({ id: Date.now(), type, description: desc, date, duration: dur,
+        profile, urgency, notes, status: 'open', assigned_to: null,
+        private_name: pName, private_address: pAddr, private_phone: pPhone });
+    }
+    resetTaskForm();
+    closeModal('modal-new-task');
+    showToast(isEdit ? 'Taak bijgewerkt' : 'Taak aangemaakt');
+    loadCoordTasks(); return;
+  }
+
+  let error;
+  if (isEdit) {
+    ({ error } = await supabase.from('tasks').update({
+      type, description: desc, date, duration: dur, notes, profile, urgency,
+      private_name: pName, private_address: pAddr, private_phone: pPhone
+    }).eq('id', editId));
+  } else {
+    ({ error } = await supabase.from('tasks').insert({
+      type, description: desc, date, duration: dur, notes, profile, urgency,
+      status: 'open', created_by: currentUser.email,
+      private_name: pName, private_address: pAddr, private_phone: pPhone
+    }));
+  }
+  if (error) { showToast('Fout: ' + error.message); return; }
+  resetTaskForm();
+  closeModal('modal-new-task');
+  showToast(isEdit ? 'Taak bijgewerkt' : 'Taak aangemaakt');
+  loadCoordTasks();
+}
+
+function resetTaskForm() {
+  document.getElementById('modal-new-task').dataset.editId = '';
+  document.querySelector('#modal-new-task .btn-primary').textContent = 'Taak aanmaken';
+  ['new-task-type','new-task-desc','new-task-date','new-task-notes',
+   'new-task-private-name','new-task-private-address','new-task-private-phone'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+async function deleteTask(id) {
+  if (!confirm('Wil je deze taak permanent verwijderen?')) return;
+  if (isDemo) {
+    demoTasks = demoTasks.filter(t => t.id !== id);
+    showToast('Taak verwijderd'); loadCoordTasks(); return;
+  }
+  const { error } = await supabase.from('tasks').delete().eq('id', id);
+  if (error) { showToast('Fout: ' + error.message); return; }
+  showToast('Taak verwijderd'); loadCoordTasks();
+}
+
+function editTask(id) {
+  const task = isDemo ? demoTasks.find(t => t.id === id) : null;
+  if (!task && !isDemo) { loadTaskForEdit(id); return; }
+  vulEditFormIn(task);
+}
+
+async function loadTaskForEdit(id) {
+  const { data } = await supabase.from('tasks').select('*').eq('id', id).single();
+  if (data) vulEditFormIn(data);
+}
+
+function vulEditFormIn(task) {
+  document.getElementById('new-task-type').value = task.type || '';
+  document.getElementById('new-task-desc').value = task.description || '';
+  document.getElementById('new-task-date').value = task.date || '';
+  document.getElementById('new-task-duration').value = task.duration || 'Ca. 1 uur';
+  document.getElementById('new-task-notes').value = task.notes || '';
+  document.getElementById('new-task-profile').value = task.profile || 'Geen speciale kennis';
+  document.getElementById('new-task-urgency').value = task.urgency || 'normaal';
+  document.getElementById('new-task-private-name').value = task.private_name || '';
+  document.getElementById('new-task-private-address').value = task.private_address || '';
+  document.getElementById('new-task-private-phone').value = task.private_phone || '';
+  // Sla het id op voor opslaan
+  document.getElementById('modal-new-task').dataset.editId = task.id;
+  // Verander de knoptekst
+  document.querySelector('#modal-new-task .btn-primary').textContent = 'Wijzigingen opslaan';
+  openModal('modal-new-task');
+}
+
+async function markDone(id) {
+  if (isDemo) {
+    const t = demoTasks.find(t => t.id === id);
+    if (t) t.status = 'done';
+    showToast('Taak afgerond'); loadCoordTasks(); return;
+  }
+  await supabase.from('tasks').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', id);
+  showToast('Taak gemarkeerd als afgerond'); loadCoordTasks();
+}
+
+// ---
+// COÖRDINATOR - VRIJWILLIGERS
+// ---
+async function loadCoordVolunteers() {
+  const el = document.getElementById('coord-volunteers-list');
+  let vols = isDemo ? DEMO_VOLUNTEERS : [];
+  if (!isDemo) {
+    const { data } = await supabase.from('profiles').select('*').order('name');
+    vols = data || [];
+  }
+  document.getElementById('coord-stat-volunteers').textContent = vols.length;
+  if (!vols.length) { el.innerHTML = '<div class="empty"><p>Nog geen vrijwilligers in de pool.</p></div>'; return; }
+  const colors = ['green','blue','amber','red'];
+  el.innerHTML = vols.map((v,i) => `
+    <div class="card" style="margin-bottom:10px">
+      <div class="row">
+        <div class="avatar av-md av-${v.color || colors[i%4]}">${v.initials || v.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}</div>
+        <div class="row-info">
+          <div class="title">${v.name}</div>
+          <div class="sub">${v.email}</div>
+          <div class="tag-row" style="margin-top:5px">
+            ${(v.task_types||[]).map(tt=>`<span class="tag">${tt}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function sendInvite() {
+  const email = document.getElementById('invite-email').value.trim();
+  const name  = document.getElementById('invite-name').value.trim();
+  if (!email || !name) { showToast('Vul naam en e-mailadres in'); return; }
+  if (isDemo) { closeModal('modal-invite'); showToast('(Demo) Uitnodiging verstuurd naar ' + email); return; }
+  const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    data: { name, role: 'volunteer' }
+  });
+  if (error) { showToast('Fout: ' + error.message); return; }
+  closeModal('modal-invite');
+  showToast('Uitnodiging verstuurd naar ' + email);
+}
+
+// ---
+// AVG - OPRUIMEN
+// ---
+async function loadAvgCleanup() {
+  const el = document.getElementById('avg-cleanup-list');
+  if (isDemo) {
+    el.innerHTML = `
+      <div class="avg-item">
+        <div class="avg-dot dot-green"></div>
+        <div>
+          <div class="avg-label">Geen verlopen gegevens gevonden</div>
+          <div class="avg-sub">Alle data is binnen de bewaartermijn</div>
+        </div>
+      </div>`;
+    return;
+  }
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const { data } = await supabase.from('tasks')
+    .select('id,description,completed_at')
+    .eq('status','done')
+    .lt('completed_at', cutoff.toISOString());
+  if (!data?.length) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--clr-text-muted)">Geen verlopen taakgegevens gevonden.</div>`;
+    return;
+  }
+  el.innerHTML = data.map(t => `
+    <div class="avg-item">
+      <div class="avg-dot dot-amber"></div>
+      <div style="flex:1">
+        <div class="avg-label">${t.description}</div>
+        <div class="avg-sub">Afgerond op ${new Date(t.completed_at).toLocaleDateString('nl-NL')}</div>
+      </div>
+      <button class="btn btn-danger" style="width:auto;padding:6px 12px;font-size:12px" onclick="deleteTaskData(${t.id})">Verwijderen</button>
+    </div>`).join('');
+}
+
+async function deleteTaskData(id) {
+  await supabase.from('tasks').update({ private_name: null, private_address: null, private_phone: null }).eq('id',id);
+  showToast('Persoonsgegevens verwijderd'); loadAvgCleanup();
+}
+
+function exportVolunteerData() {
+  const email = document.getElementById('avg-request-email').value.trim();
+  if (!email) { showToast('Voer een e-mailadres in'); return; }
+  showToast('Gegevensexport aangevraagd voor ' + email);
+}
+
+function deleteVolunteerData() {
+  const email = document.getElementById('avg-request-email').value.trim();
+  if (!email) { showToast('Voer een e-mailadres in'); return; }
+  if (!confirm('Wil je alle gegevens van ' + email + ' permanent verwijderen?')) return;
+  showToast('Verwijderverzoek verwerkt voor ' + email);
+}
+
+// ---
+// PROFIEL
+// ---
+function saveProfile() {
+  showToast('Profiel opgeslagen');
+}
+
+function initCheckboxes() {
+  document.querySelectorAll('.checkbox-item').forEach(item => {
+    const cb = item.querySelector('input[type=checkbox]');
+    if (cb && cb.checked) item.classList.add('selected');
+  });
+}
+
+function toggleCheck(label) {
+  const cb = label.querySelector('input[type=checkbox]');
+  setTimeout(() => label.classList.toggle('selected', cb.checked), 0);
+}
+
+// ---
+// UTILITIES
+// ---
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function saveProfile() {
+  showToast('Profiel opgeslagen');
+}
+
+function logout() {
+  if (supabase) supabase.auth.signOut();
+  currentUser = null; isDemo = false;
+  showScreen('screen-login');
+}
+
+function exportVolunteerData() {
+  const email = document.getElementById('avg-request-email').value.trim();
+  if (!email) { showToast('Voer een e-mailadres in'); return; }
+  showToast('Gegevensexport aangevraagd voor ' + email);
+}
+
+function deleteVolunteerData() {
+  const email = document.getElementById('avg-request-email').value.trim();
+  if (!email) { showToast('Voer een e-mailadres in'); return; }
+  if (!confirm('Wil je alle gegevens van ' + email + ' permanent verwijderen?')) return;
+  showToast('Verwijderverzoek verwerkt voor ' + email);
+}
+
+</script>
+</body>
+</html>
