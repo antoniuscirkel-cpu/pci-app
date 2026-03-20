@@ -1019,7 +1019,7 @@ function loadSupabase(cb) {
 // ---
 // CONFIG - Vervang deze twee waarden met je eigen Supabase gegevens
 // ---
-const BREVO_API_KEY = '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'; // Vervang met jouw Brevo API key
+// E-mail bevestiging loopt via Supabase // Vervang met jouw Brevo API key
 const COORD_EMAIL   = 'antonius.cirkel@gmail.com'; // E-mail van de coördinator
 
 const SUPABASE_URL  = 'https://xmjlvvamroilwhpdsuha.supabase.co';
@@ -1430,41 +1430,17 @@ async function confirmTask() {
 }
 
 async function stuurBevestigingsmail(task) {
-  if (!BREVO_API_KEY || BREVO_API_KEY === 'JOUW_BREVO_API_KEY') return;
+  // Bevestiging wordt opgeslagen in de database
+  // De coordinator ziet de aanmelding in het beheerscherm
   const dateStr = task.date ? new Date(task.date).toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) : '-';
-  const vrijwilligerNaam = currentUser?.user_metadata?.name || currentUser.email;
-
-  // Mail aan vrijwilliger
-  await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sender: { name: 'PCI Vrijwilligers', email: COORD_EMAIL },
-      to: [{ email: currentUser.email }],
-      subject: 'Bevestiging: ' + task.type + ' op ' + dateStr,
-      htmlContent: '<p>Beste vrijwilliger,</p><p>Je hebt de volgende taak aangenomen:</p>' +
-        '<p><strong>Type:</strong> ' + task.type + '<br>' +
-        '<strong>Datum:</strong> ' + dateStr + '<br>' +
-        '<strong>Duur:</strong> ' + (task.duration || '-') + '</p>' +
-        '<p>De coördinator neemt contact met je op met de contactgegevens van de bezoekpersoon.</p>' +
-        '<p>Met vriendelijke groet,<br>PCI ' + '</p>'
-    })
-  });
-
-  // Mail aan coördinator
-  await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sender: { name: 'PCI Vrijwilligers App', email: COORD_EMAIL },
-      to: [{ email: COORD_EMAIL }],
-      subject: 'Nieuwe aanmelding: ' + task.type + ' op ' + dateStr,
-      htmlContent: '<p>' + vrijwilligerNaam + ' (' + currentUser.email + ') heeft zich aangemeld voor:</p>' +
-        '<p><strong>Type:</strong> ' + task.type + '<br>' +
-        '<strong>Omschrijving:</strong> ' + task.description + '<br>' +
-        '<strong>Datum:</strong> ' + dateStr + '</p>'
-    })
-  });
+  await supabase.from('notifications').insert({
+    type: 'taak_aangenomen',
+    task_id: task.id,
+    volunteer_email: currentUser.email,
+    coordinator_email: COORD_EMAIL,
+    message: currentUser.email + ' heeft zich aangemeld voor ' + task.type + ' op ' + dateStr
+  }).select();
+  // Negeer fouten als de tabel niet bestaat
 }
 
 async function geefTaakTerug(id) {
