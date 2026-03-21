@@ -506,20 +506,23 @@ function loadSupabase(cb) {
   <div class="modal-overlay" id="modal-invite">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">Vrijwilliger uitnodigen</div>
-      <div class="form-group">
-        <label class="form-label">E-mailadres</label>
-        <input type="email" class="form-input" id="invite-email" placeholder="naam@email.nl">
+      <div class="modal-title">Vrijwilliger toevoegen</div>
+      <p style="font-size:14px;color:var(--clr-text-muted);margin-bottom:16px;line-height:1.6">
+        Nieuwe vrijwilligers voeg je toe via Supabase. Volg deze stappen:
+      </p>
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:14px;line-height:1.9;color:var(--clr-text)">
+          <div>1. Ga naar <strong>supabase.com</strong> en log in</div>
+          <div>2. Klik op <strong>Authentication &gt; Users</strong></div>
+          <div>3. Klik op <strong>Add user &gt; Create new user</strong></div>
+          <div>4. Vul het e-mailadres en een tijdelijk wachtwoord in</div>
+          <div>5. De vrijwilliger logt in via de app met zijn e-mailadres</div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Naam</label>
-        <input type="text" class="form-input" id="invite-name" placeholder="Voor- en achternaam">
+      <div class="notice notice-info" style="margin-bottom:16px">
+        <strong>AVG:</strong> Voeg alleen mensen toe die hiermee hebben ingestemd.
       </div>
-      <div class="notice notice-warn" style="margin-bottom:16px">
-        <strong>Let op:</strong> Stuur alleen uitnodigingen naar mensen die hiermee hebben ingestemd. De uitgenodigde persoon krijgt een activatielink per e-mail.
-      </div>
-      <button class="btn btn-primary" onclick="sendInvite()">Uitnodiging versturen</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-invite')">Annuleren</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-invite')">Sluiten</button>
     </div>
   </div>
 
@@ -1706,7 +1709,7 @@ async function wisselRol(id, huidigeRol, email) {
   const nieuweRol = huidigeRol === 'coordinator' ? 'volunteer' : 'coordinator';
   const bevestig = confirm(email + ' wordt ' + (nieuweRol === 'coordinator' ? 'coordinator' : 'vrijwilliger') + '. Doorgaan?');
   if (!bevestig) return;
-  const { error } = await supabase.from('profiles').update({ role: nieuweRol }).eq('id', id);
+  const { error } = await supabase.rpc('update_profile_role', { profile_id: id, new_role: nieuweRol });
   if (error) { showToast('Fout: ' + error.message); return; }
   showToast('Rol gewijzigd'); loadCoordVolunteers();
 }
