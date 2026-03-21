@@ -1786,6 +1786,40 @@ async function deleteTaskData(id) {
   showToast('Persoonsgegevens verwijderd'); loadAvgCleanup();
 }
 
+function toggleConsent(el) {
+  const cb = el.querySelector('input[type=checkbox]');
+  setTimeout(() => { cb.checked = !cb.checked; }, 0);
+}
+
+function bevestigAvg() {
+  const cb1 = document.getElementById('avg-cb-1');
+  const cb2 = document.getElementById('avg-cb-2');
+  if (!cb1.checked || !cb2.checked) {
+    showToast('Vink beide vakjes aan om door te gaan');
+    return;
+  }
+  localStorage.setItem('avg_akkoord_' + currentUser.email, 'ja');
+  closeModal('modal-avg');
+}
+
+function checkAvgToestemming() {
+  if (!currentUser) return;
+  const akkoord = localStorage.getItem('avg_akkoord_' + currentUser.email);
+  if (!akkoord) openModal('modal-avg');
+}
+
+function initCheckboxes() {
+  document.querySelectorAll('.checkbox-item').forEach(item => {
+    const cb = item.querySelector('input[type=checkbox]');
+    if (cb && cb.checked) item.classList.add('selected');
+  });
+}
+
+function toggleCheck(label) {
+  const cb = label.querySelector('input[type=checkbox]');
+  setTimeout(() => label.classList.toggle('selected', cb.checked), 0);
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
