@@ -1577,7 +1577,7 @@ async function createTask() {
   const date    = document.getElementById('new-task-date').value;
   const dur     = document.getElementById('new-task-duration').value;
   const notes   = document.getElementById('new-task-notes').value.trim();
-  const profile = document.getElementById('new-task-profile').value;
+  const profile = type;
   const urgency = document.getElementById('new-task-urgency').value;
   const pName   = document.getElementById('new-task-private-name').value.trim();
   const pAddr   = document.getElementById('new-task-private-address').value.trim();
@@ -1662,7 +1662,7 @@ function vulEditFormIn(task) {
   document.getElementById('new-task-date').value = task.date || '';
   document.getElementById('new-task-duration').value = task.duration || 'Ca. 1 uur';
   document.getElementById('new-task-notes').value = task.notes || '';
-  document.getElementById('new-task-profile').value = task.profile || 'Geen speciale kennis';
+
   document.getElementById('new-task-urgency').value = task.urgency || 'normaal';
   document.getElementById('new-task-private-name').value = task.private_name || '';
   document.getElementById('new-task-private-address').value = task.private_address || '';
