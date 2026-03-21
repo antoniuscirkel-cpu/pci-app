@@ -2,6 +2,9 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>PCI Vrijwilligers</title>
 <script>
@@ -1572,16 +1575,17 @@ async function loadCoordTasks() {
 }
 
 async function createTask() {
-  const type    = document.getElementById('new-task-type').value;
-  const desc    = document.getElementById('new-task-desc').value.trim();
-  const date    = document.getElementById('new-task-date').value;
-  const dur     = document.getElementById('new-task-duration').value;
-  const notes   = document.getElementById('new-task-notes').value.trim();
+  const getVal = (id, trim) => { const el = document.getElementById(id); return el ? (trim ? el.value.trim() : el.value) : ''; };
+  const type    = getVal('new-task-type');
+  const desc    = getVal('new-task-desc', true);
+  const date    = getVal('new-task-date');
+  const dur     = getVal('new-task-duration');
+  const notes   = getVal('new-task-notes', true);
   const profile = type;
-  const urgency = document.getElementById('new-task-urgency').value;
-  const pName   = document.getElementById('new-task-private-name').value.trim();
-  const pAddr   = document.getElementById('new-task-private-address').value.trim();
-  const pPhone  = document.getElementById('new-task-private-phone').value.trim();
+  const urgency = getVal('new-task-urgency');
+  const pName   = getVal('new-task-private-name', true);
+  const pAddr   = getVal('new-task-private-address', true);
+  const pPhone  = getVal('new-task-private-phone', true);
 
   if (!type || !desc || !date) { showToast('Vul type, omschrijving en datum in'); return; }
 
@@ -1780,129 +1784,6 @@ async function loadAvgCleanup() {
 async function deleteTaskData(id) {
   await supabase.from('tasks').update({ private_name: null, private_address: null, private_phone: null }).eq('id',id);
   showToast('Persoonsgegevens verwijderd'); loadAvgCleanup();
-}
-
-function exportVolunteerData() {
-  const email = document.getElementById('avg-request-email').value.trim();
-  if (!email) { showToast('Voer een e-mailadres in'); return; }
-  showToast('Gegevensexport aangevraagd voor ' + email);
-}
-
-function deleteVolunteerData() {
-  const email = document.getElementById('avg-request-email').value.trim();
-  if (!email) { showToast('Voer een e-mailadres in'); return; }
-  if (!confirm('Wil je alle gegevens van ' + email + ' permanent verwijderen?')) return;
-  showToast('Verwijderverzoek verwerkt voor ' + email);
-}
-
-// ---
-// PROFIEL
-// ---
-async function saveProfile() {
-  const firstname = document.getElementById('profile-firstname').value.trim();
-  const lastname = document.getElementById('profile-lastname').value.trim();
-  const days = document.getElementById('profile-days').value.trim();
-  const maxTasks = document.getElementById('profile-max-tasks').value;
-  const phone = document.getElementById('profile-phone').value.trim();
-  const taskTypes = Array.from(document.querySelectorAll('#profile-task-types input:checked')).map(cb => cb.value);
-  const fullName = [firstname, lastname].filter(Boolean).join(' ') || null;
-
-  if (!supabase || !currentUser) { showToast('Profiel opgeslagen'); return; }
-
-  const updates = {
-    days, max_tasks_per_month: parseInt(maxTasks),
-    task_types: taskTypes, phone,
-    last_active: new Date().toISOString()
-  };
-  if (fullName) updates.name = fullName;
-
-  const { error } = await supabase.from('profiles').update(updates).eq('id', currentUser.id);
-
-  if (error) { showToast('Fout: ' + error.message); return; }
-
-  // Update avatar met nieuwe naam
-  if (fullName) {
-    const initials = fullName.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-    document.getElementById('nav-avatar').textContent = initials;
-    document.getElementById('profile-name').textContent = fullName;
-    document.getElementById('profile-avatar-lg').textContent = initials;
-  }
-
-  showToast('Profiel opgeslagen');
-}
-
-function initCheckboxes() {
-  document.querySelectorAll('.checkbox-item').forEach(item => {
-    const cb = item.querySelector('input[type=checkbox]');
-    if (cb && cb.checked) item.classList.add('selected');
-  });
-}
-
-function toggleCheck(label) {
-  const cb = label.querySelector('input[type=checkbox]');
-  setTimeout(() => label.classList.toggle('selected', cb.checked), 0);
-}
-
-// ---
-// UTILITIES
-// ---
-
-function toggleConsent(el) {
-  const cb = el.querySelector('input[type=checkbox]');
-  setTimeout(() => cb.checked = !cb.checked, 0);
-}
-
-function bevestigAvg() {
-  const cb1 = document.getElementById('avg-cb-1');
-  const cb2 = document.getElementById('avg-cb-2');
-  if (!cb1.checked || !cb2.checked) {
-    showToast('Vink beide vakjes aan om door te gaan');
-    return;
-  }
-  localStorage.setItem('avg_akkoord_' + currentUser.email, 'ja');
-  closeModal('modal-avg');
-  showScreen('screen-tasks');
-  loadTasks(); loadMyTasks();
-}
-
-function checkAvgToestemming() {
-  if (!currentUser) return;
-  const akkoord = localStorage.getItem('avg_akkoord_' + currentUser.email);
-  if (!akkoord) {
-    openModal('modal-avg');
-  }
-}
-
-async function loadArchief() {
-  const el = document.getElementById('archief-list');
-  if (!el) return;
-  el.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
-
-  let taken = [];
-  if (isDemo) {
-    taken = demoTasks.filter(t => t.status === 'done');
-  } else {
-    const { data } = await supabase.from('tasks')
-      .select('id,type,description,date,assigned_to,completed_at')
-      .eq('status','done')
-      .order('completed_at', { ascending: false });
-    taken = data || [];
-  }
-
-  if (!taken.length) {
-    el.innerHTML = '<div class="empty"><p>Nog geen afgeronde taken.</p></div>';
-    return;
-  }
-
-  el.innerHTML = '<div class="section-lbl">Afgeronde taken (' + taken.length + ')</div>' +
-    taken.map(t => {
-      const dateStr = t.completed_at ? new Date(t.completed_at).toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'}) : '-';
-      return '<div class="card" style="margin-bottom:10px">' +
-        '<div style="font-size:12px;color:var(--clr-text-muted)">' + t.type + ' &bull; Afgerond op ' + dateStr + '</div>' +
-        '<div style="font-size:15px;font-weight:500;margin-top:2px">' + t.description + '</div>' +
-        (t.assigned_to ? '<div style="font-size:13px;color:var(--clr-accent);margin-top:3px">' + t.assigned_to + '</div>' : '') +
-        '</div>';
-    }).join('');
 }
 
 function showToast(msg) {
