@@ -606,6 +606,37 @@ function loadSupabase(cb) {
     </div>
   </div>
 
+
+  <!-- MODAL: AVG Toestemming -->
+  <div class="modal-overlay" id="modal-avg">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Toestemming gegevensverwerking</div>
+      <p style="font-size:14px;color:var(--clr-text-muted);margin-bottom:16px;line-height:1.6">
+        Om de app te gebruiken verwerkt PCI RK Antonius van Padua de volgende persoonsgegevens:
+      </p>
+      <div class="card" style="margin-bottom:16px;padding:12px 14px">
+        <div style="font-size:13px;line-height:1.8;color:var(--clr-text)">
+          <div>Naam en e-mailadres (voor communicatie)</div>
+          <div>Beschikbaarheid en taakvoorkeuren (voor taakverdeling)</div>
+          <div>Uitgevoerde taken (voor administratie)</div>
+        </div>
+      </div>
+      <div class="notice notice-info" style="margin-bottom:16px">
+        <strong>Grondslag:</strong> Gerechtvaardigd belang (kerkelijk pastoraat). Gegevens worden opgeslagen op beveiligde servers in de EU en niet gedeeld met derden. Je kunt je gegevens op elk moment opvragen of laten verwijderen via de coordinator.
+      </div>
+      <div class="consent-check" id="avg-check-1" onclick="toggleConsent(this)">
+        <input type="checkbox" id="avg-cb-1">
+        <div class="consent-text">Ik geef toestemming voor de verwerking van mijn persoonsgegevens door PCI RK Antonius van Padua.</div>
+      </div>
+      <div class="consent-check" id="avg-check-2" onclick="toggleConsent(this)">
+        <input type="checkbox" id="avg-cb-2">
+        <div class="consent-text">Ik heb de privacyverklaring gelezen en begrepen.</div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="bevestigAvg()">Akkoord en doorgaan</button>
+    </div>
+  </div>
+
   <!-- ---
        SCHERM: LOGIN
   --- -->
@@ -751,7 +782,10 @@ function loadSupabase(cb) {
       <div class="notice notice-success" style="margin-bottom:10px">
         Je hebt deze taak aangenomen. Onderstaande gegevens zijn alleen voor jou zichtbaar.
       </div>
-      <button class="btn btn-danger" style="margin-bottom:10px" onclick="geefTaakTerug(currentTaskId)">Taak teruggeven</button>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn btn-primary" style="flex:1" onclick="vrijwilligerMarkeerAfgerond(currentTaskId)">Taak afgerond</button>
+        <button class="btn btn-danger" style="flex:1" onclick="geefTaakTerug(currentTaskId)">Teruggeven</button>
+      </div>
       <div class="card">
         <div class="detail-row">
           <div class="detail-icon">👤</div>
@@ -1190,6 +1224,7 @@ function enterApp() {
           document.getElementById('nav-beheer-btn').style.display = 'none';
           document.getElementById('nav-beheer-btn2').style.display = 'none';
         }
+        checkAvgToestemming();
         showScreen('screen-tasks');
         loadTasks();
         loadMyTasks();
@@ -1197,6 +1232,7 @@ function enterApp() {
   } else {
     document.getElementById('nav-beheer-btn').style.display = 'none';
     document.getElementById('nav-beheer-btn2').style.display = 'none';
+    checkAvgToestemming();
     showScreen('screen-tasks');
     loadTasks();
     loadMyTasks();
@@ -1441,6 +1477,24 @@ async function stuurBevestigingsmail(task) {
     message: currentUser.email + ' heeft zich aangemeld voor ' + task.type + ' op ' + dateStr
   }).select();
   // Negeer fouten als de tabel niet bestaat
+}
+
+async function vrijwilligerMarkeerAfgerond(id) {
+  if (!confirm('Wil je deze taak als afgerond markeren?')) return;
+  if (isDemo) {
+    const t = demoTasks.find(t => t.id === id);
+    if (t) t.status = 'done';
+    showToast('Taak afgerond, coordinator is op de hoogte gesteld');
+    showScreen('screen-tasks');
+    loadTasks(); loadMyTasks(); return;
+  }
+  const { error } = await supabase.from('tasks').update({
+    status: 'done', completed_at: new Date().toISOString()
+  }).eq('id', id);
+  if (error) { showToast('Fout: ' + error.message); return; }
+  showToast('Taak afgerond, coordinator is op de hoogte gesteld');
+  showScreen('screen-tasks');
+  loadTasks(); loadMyTasks();
 }
 
 async function geefTaakTerug(id) {
@@ -1730,6 +1784,32 @@ function toggleCheck(label) {
 // ---
 // UTILITIES
 // ---
+
+function toggleConsent(el) {
+  const cb = el.querySelector('input[type=checkbox]');
+  setTimeout(() => cb.checked = !cb.checked, 0);
+}
+
+function bevestigAvg() {
+  const cb1 = document.getElementById('avg-cb-1');
+  const cb2 = document.getElementById('avg-cb-2');
+  if (!cb1.checked || !cb2.checked) {
+    showToast('Vink beide vakjes aan om door te gaan');
+    return;
+  }
+  localStorage.setItem('avg_akkoord_' + currentUser.email, 'ja');
+  closeModal('modal-avg');
+  showScreen('screen-tasks');
+  loadTasks(); loadMyTasks();
+}
+
+function checkAvgToestemming() {
+  if (!currentUser) return;
+  const akkoord = localStorage.getItem('avg_akkoord_' + currentUser.email);
+  if (!akkoord) {
+    openModal('modal-avg');
+  }
+}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
