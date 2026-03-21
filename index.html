@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>PCI Vrijwilligers</title>
+<title>Antonius Cirkel</title>
 <script>
 window._supabaseReady = false;
 function loadSupabase(cb) {
@@ -638,7 +638,7 @@ function loadSupabase(cb) {
        SCHERM: LOGIN
   --- -->
   <div id="screen-login" class="screen active">
-    <div class="login-logo">PCI Vrijwilligers</div>
+    <div class="login-logo">Antonius Cirkel</div>
     <div class="login-sub">RK Antonius van Padua</div>
 
     <div class="login-card">
@@ -660,7 +660,7 @@ function loadSupabase(cb) {
         </p>
         <div class="form-group">
           <label class="form-label">Code</label>
-          <input type="text" class="form-input" id="login-otp" placeholder="123456"
+          <input type="text" class="form-input" id="login-otp" placeholder="12345678"
             maxlength="8" style="font-size:24px;text-align:center;letter-spacing:8px"
             onkeydown="if(event.key==='Enter')verifyOtp()">
         </div>
@@ -671,14 +671,8 @@ function loadSupabase(cb) {
 
     <p style="margin-top:20px;font-size:12px;color:var(--clr-text-faint);text-align:center;line-height:1.6">
       Door in te loggen ga je akkoord met het gebruik van je gegevens<br>
-      conform de AVG-verwerkersovereenkomst van de PCI.
+      conform de AVG-verwerkersovereenkomst van de parochie HH Nicolaas Pieck en Gezellen.
     </p>
-
-    <!-- Demo knop -->
-    <div style="margin-top:28px;text-align:center">
-      <div style="font-size:12px;color:var(--clr-text-faint);margin-bottom:8px">Nog geen Supabase ingesteld?</div>
-      <button class="btn" style="width:auto;padding:8px 20px;font-size:13px" onclick="startDemo()">Bekijk demo-modus</button>
-    </div>
   </div>
 
   <!-- ---
@@ -687,7 +681,7 @@ function loadSupabase(cb) {
   <div id="screen-tasks" class="screen">
     <div class="demo-banner hidden" id="demo-banner">Demo-modus actief, geen echte data</div>
     <div class="topbar">
-      <div class="app-logo">PCI <small>Vrijwilligers</small></div>
+      <div class="app-logo">Antonius <small>Cirkel</small></div>
       <div class="avatar-btn av-green" id="nav-avatar" onclick="showScreen('screen-profile')">MV</div>
     </div>
 
@@ -820,7 +814,7 @@ function loadSupabase(cb) {
   --- -->
   <div id="screen-profile" class="screen">
     <div class="topbar">
-      <div class="app-logo">Mijn profiel <small>PCI Vrijwilligers</small></div>
+      <div class="app-logo">Mijn profiel <small>Antonius Cirkel</small></div>
     </div>
 
     <div style="padding: 20px">
@@ -1335,13 +1329,7 @@ function logout() {
   showScreen('screen-login');
 }
 
-function startDemo() {
-  isDemo = true;
-  currentUser = { email: DEMO_USER.email, user_metadata: { name: DEMO_USER.name, role: 'coordinator' } };
-  document.getElementById('demo-banner').classList.remove('hidden');
-  enterApp();
-  showToast('Demo-modus gestart');
-}
+
 
 // ---
 // TAKEN LADEN (vrijwilliger)
