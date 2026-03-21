@@ -575,9 +575,10 @@ function loadSupabase(cb) {
         <label class="form-label">Vereist profiel</label>
         <select class="form-select" id="new-task-profile">
           <option value="Geen speciale kennis">Geen speciale kennis nodig</option>
-          <option value="Schuldhulp">Schuldhulpverlening</option>
-          <option value="Medisch">Medische/verpleegkundige achtergrond</option>
-          <option value="Pastoraal">Pastorale ervaring</option>
+          <option value="Ziekenbezoek">Ziekenbezoek</option>
+          <option value="Jubilea">Jubilea</option>
+          <option value="Naastenliefde">Naastenliefde</option>
+          <option value="Hulpvragen">Hulpvragen</option>
         </select>
       </div>
 
@@ -857,19 +858,16 @@ function loadSupabase(cb) {
             <div><div class="checkbox-label">Ziekenbezoek</div></div>
           </label>
           <label class="checkbox-item selected" onclick="toggleCheck(this)">
-            <input type="checkbox" value="Jubileumbezoek" checked>
-            <div><div class="checkbox-label">Jubileumbezoek</div></div>
+            <input type="checkbox" value="Jubilea" checked>
+            <div><div class="checkbox-label">Jubilea</div></div>
           </label>
           <label class="checkbox-item" onclick="toggleCheck(this)">
-            <input type="checkbox" value="Schuldhulpverlening">
-            <div>
-              <div class="checkbox-label">Schuldhulpverlening</div>
-              <div class="checkbox-sub">Vereist specifieke kennis</div>
-            </div>
+            <input type="checkbox" value="Naastenliefde">
+            <div><div class="checkbox-label">Naastenliefde</div></div>
           </label>
           <label class="checkbox-item" onclick="toggleCheck(this)">
-            <input type="checkbox" value="Praktische hulp">
-            <div><div class="checkbox-label">Praktische hulp</div></div>
+            <input type="checkbox" value="Hulpvragen">
+            <div><div class="checkbox-label">Hulpvragen</div></div>
           </label>
         </div>
       </div>
@@ -890,12 +888,7 @@ function loadSupabase(cb) {
         </div>
       </div>
 
-      <div class="section-lbl">Opleiding en achtergrond</div>
-      <div class="card">
-        <textarea class="form-textarea" id="profile-background"
-          placeholder="Beschrijf kort je relevante achtergrond of opleiding (optioneel)..."></textarea>
-        <div class="form-hint">Wordt alleen gebruikt om je te koppelen aan passende taken.</div>
-      </div>
+
 
       <div class="notice notice-info" style="margin:16px 0 0">
         <strong>Jouw privacy:</strong> Je profiel is alleen zichtbaar voor de coördinator. Andere vrijwilligers zien jouw gegevens niet.
@@ -930,6 +923,7 @@ function loadSupabase(cb) {
     <div class="tabs">
       <div class="tab active" onclick="switchTab('ctab-tasks','coord-tabs')">Taken</div>
       <div class="tab" onclick="switchTab('ctab-people','coord-tabs')">Vrijwilligers</div>
+      <div class="tab" onclick="switchTab('ctab-archief','coord-tabs');loadArchief()">Archief</div>
       <div class="tab" onclick="switchTab('ctab-avg','coord-tabs')">AVG</div>
     </div>
 
@@ -959,6 +953,13 @@ function loadSupabase(cb) {
       <div class="tabpanel" id="ctab-people">
         <button class="btn" style="margin-bottom:16px" onclick="openModal('modal-invite')">+ Vrijwilliger uitnodigen</button>
         <div id="coord-volunteers-list">
+          <div class="loading"><div class="spinner"></div>Laden...</div>
+        </div>
+      </div>
+
+      <!-- ARCHIEF -->
+      <div class="tabpanel" id="ctab-archief">
+        <div id="archief-list">
           <div class="loading"><div class="spinner"></div>Laden...</div>
         </div>
       </div>
@@ -1674,7 +1675,7 @@ async function loadCoordVolunteers() {
   const el = document.getElementById('coord-volunteers-list');
   let vols = isDemo ? DEMO_VOLUNTEERS : [];
   if (!isDemo) {
-    const { data } = await supabase.from('profiles').select('*').order('name');
+    const { data } = await supabase.from('profiles').select('id, name, email, role, task_types, days, last_active').order('name');
     vols = data || [];
   }
   document.getElementById('coord-stat-volunteers').textContent = vols.length;
@@ -1687,12 +1688,27 @@ async function loadCoordVolunteers() {
         <div class="row-info">
           <div class="title">${v.name}</div>
           <div class="sub">${v.email}</div>
+          <div style="font-size:11px;margin-top:3px">
+            <span class="badge ${v.role === 'coordinator' ? 'badge-profile' : 'badge-open'}">${v.role === 'coordinator' ? 'Coordinator' : 'Vrijwilliger'}</span>
+          </div>
           <div class="tag-row" style="margin-top:5px">
             ${(v.task_types||[]).map(tt=>`<span class="tag">${tt}</span>`).join('')}
           </div>
         </div>
+        <button class="btn" style="width:auto;padding:6px 10px;font-size:12px" onclick="wisselRol('${v.id}','${v.role}','${v.email}')">
+          ${v.role === 'coordinator' ? 'Vrijwilliger maken' : 'Coordinator maken'}
+        </button>
       </div>
     </div>`).join('');
+}
+
+async function wisselRol(id, huidigeRol, email) {
+  const nieuweRol = huidigeRol === 'coordinator' ? 'volunteer' : 'coordinator';
+  const bevestig = confirm(email + ' wordt ' + (nieuweRol === 'coordinator' ? 'coordinator' : 'vrijwilliger') + '. Doorgaan?');
+  if (!bevestig) return;
+  const { error } = await supabase.from('profiles').update({ role: nieuweRol }).eq('id', id);
+  if (error) { showToast('Fout: ' + error.message); return; }
+  showToast('Rol gewijzigd'); loadCoordVolunteers();
 }
 
 async function sendInvite() {
@@ -1809,6 +1825,38 @@ function checkAvgToestemming() {
   if (!akkoord) {
     openModal('modal-avg');
   }
+}
+
+async function loadArchief() {
+  const el = document.getElementById('archief-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
+
+  let taken = [];
+  if (isDemo) {
+    taken = demoTasks.filter(t => t.status === 'done');
+  } else {
+    const { data } = await supabase.from('tasks')
+      .select('id,type,description,date,assigned_to,completed_at')
+      .eq('status','done')
+      .order('completed_at', { ascending: false });
+    taken = data || [];
+  }
+
+  if (!taken.length) {
+    el.innerHTML = '<div class="empty"><p>Nog geen afgeronde taken.</p></div>';
+    return;
+  }
+
+  el.innerHTML = '<div class="section-lbl">Afgeronde taken (' + taken.length + ')</div>' +
+    taken.map(t => {
+      const dateStr = t.completed_at ? new Date(t.completed_at).toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'}) : '-';
+      return '<div class="card" style="margin-bottom:10px">' +
+        '<div style="font-size:12px;color:var(--clr-text-muted)">' + t.type + ' &bull; Afgerond op ' + dateStr + '</div>' +
+        '<div style="font-size:15px;font-weight:500;margin-top:2px">' + t.description + '</div>' +
+        (t.assigned_to ? '<div style="font-size:13px;color:var(--clr-accent);margin-top:3px">' + t.assigned_to + '</div>' : '') +
+        '</div>';
+    }).join('');
 }
 
 function showToast(msg) {
