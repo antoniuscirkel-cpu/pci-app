@@ -1642,7 +1642,7 @@ function resetTaskForm() {
 }
 
 async function deleteTask(id) {
-  if (!confirm('Wil je deze taak permanent verwijderen?')) return;
+  if (!confirm('Wil je deze taak verwijderen? Afgeronde taken in het archief worden niet verwijderd.')) return;
   if (isDemo) {
     demoTasks = demoTasks.filter(t => t.id !== id);
     showToast('Taak verwijderd'); loadCoordTasks(); return;
