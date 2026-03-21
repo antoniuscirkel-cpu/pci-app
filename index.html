@@ -41,16 +41,17 @@ function loadSupabase(cb) {
     --supabase-url: 'JOUW_SUPABASE_URL';
     --supabase-key: 'JOUW_SUPABASE_ANON_KEY';
 
-    --clr-bg: #F7F4EF;
+    --clr-bg: #f4fbf7;
     --clr-surface: #FFFFFF;
+    --clr-card-bg: #d8efe3;
     --clr-border: rgba(60,50,30,0.12);
     --clr-border-strong: rgba(60,50,30,0.25);
-    --clr-text: #1A1610;
-    --clr-text-muted: #6B6050;
-    --clr-text-faint: #A89880;
-    --clr-accent: #2D6A4F;
-    --clr-accent-light: #E8F5EE;
-    --clr-accent-text: #1B4332;
+    --clr-text: #2d2d2d;
+    --clr-text-muted: #616161;
+    --clr-text-faint: #8faa98;
+    --clr-accent: #5ea97a;
+    --clr-accent-light: #d8efe3;
+    --clr-accent-text: #2d6a4f;
     --clr-warn: #B45309;
     --clr-warn-light: #FEF3C7;
     --clr-warn-text: #78350F;
@@ -144,7 +145,7 @@ function loadSupabase(cb) {
     padding: 3px 9px; border-radius: 20px;
     text-transform: uppercase;
   }
-  .badge-open { background: var(--clr-accent-light); color: var(--clr-accent-text); }
+  .badge-open { background: #d8efe3; color: #2d6a4f; }
   .badge-urgent { background: var(--clr-danger-light); color: var(--clr-danger-text); }
   .badge-taken { background: var(--clr-warn-light); color: var(--clr-warn-text); }
   .badge-done { background: #F3F4F6; color: #374151; }
@@ -209,10 +210,10 @@ function loadSupabase(cb) {
   .btn:active { transform: scale(0.98); }
   .btn + .btn { margin-top: 8px; }
   .btn-primary {
-    background: var(--clr-accent);
-    color: white; border-color: var(--clr-accent-text);
+    background: #85c69d;
+    color: white; border-color: #5ea97a;
   }
-  .btn-primary:active { background: var(--clr-accent-text); }
+  .btn-primary:active { background: #5ea97a; }
   .btn-ghost { border-color: transparent; color: var(--clr-text-muted); }
   .btn-danger { color: var(--clr-danger); border-color: var(--clr-danger-light); }
 
