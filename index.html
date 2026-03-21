@@ -32,7 +32,7 @@ function loadSupabase(cb) {
   tryNext();
 }
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   /* --- CONFIG: vervang deze twee regels met je eigen Supabase gegevens --- */
   /* Zie de installatiegids voor uitleg */
@@ -70,7 +70,7 @@ function loadSupabase(cb) {
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Source Sans 3', sans-serif;
     background: var(--clr-bg);
     color: var(--clr-text);
     min-height: 100vh;
@@ -112,7 +112,7 @@ function loadSupabase(cb) {
     color: var(--clr-accent-text); flex: 1;
   }
   .app-logo small {
-    display: block; font-family: 'Montserrat', sans-serif;
+    display: block; font-family: 'Source Sans 3', sans-serif;
     font-size: 12px; font-weight: 400; color: var(--clr-text-muted);
   }
   .avatar-btn {
@@ -197,7 +197,7 @@ function loadSupabase(cb) {
   /* --- BUTTONS --- */
   .btn {
     display: block; width: 100%; padding: 13px 16px;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 15px; font-weight: 600;
     border-radius: var(--radius-md);
     border: 1.5px solid var(--clr-border-strong);
@@ -224,7 +224,7 @@ function loadSupabase(cb) {
   }
   .form-input, .form-select, .form-textarea {
     display: block; width: 100%;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 15px; color: var(--clr-text);
     background: var(--clr-surface);
     border: 1.5px solid var(--clr-border-strong);
@@ -1375,11 +1375,12 @@ async function loadMyTasks() {
   el.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
   let tasks = [];
   if (isDemo) {
-    tasks = demoTasks.filter(t => t.assigned_to === DEMO_USER.email);
+    tasks = demoTasks.filter(t => t.assigned_to === DEMO_USER.email && t.status !== 'done');
   } else {
     const { data } = await supabase.from('tasks')
       .select('id,type,description,date,duration,status')
       .eq('assigned_to', currentUser.email)
+      .neq('status', 'done')
       .order('date');
     tasks = data || [];
   }
@@ -1542,9 +1543,9 @@ async function geefTaakTerug(id) {
 // ---
 async function loadCoordTasks() {
   const el = document.getElementById('coord-tasks-list');
-  let tasks = isDemo ? demoTasks : [];
+  let tasks = isDemo ? demoTasks.filter(t => t.status !== 'done') : [];
   if (!isDemo) {
-    const { data } = await supabase.from('tasks').select('*').order('date');
+    const { data } = await supabase.from('tasks').select('*').neq('status','done').order('date');
     tasks = data || [];
   }
   document.getElementById('coord-stat-open').textContent = tasks.filter(t=>t.status==='open').length;
