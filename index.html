@@ -875,6 +875,23 @@ function loadSupabase(cb) {
         </div>
       </div>
 
+      <div class="section-lbl">Contactgegevens</div>
+      <div class="card" style="margin-bottom:0">
+        <div class="form-group">
+          <label class="form-label">Voornaam</label>
+          <input type="text" class="form-input" id="profile-firstname" placeholder="Voornaam">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Achternaam</label>
+          <input type="text" class="form-input" id="profile-lastname" placeholder="Achternaam">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Telefoonnummer</label>
+          <input type="tel" class="form-input" id="profile-phone" placeholder="bijv. 06-12345678">
+          <div class="form-hint">Alleen zichtbaar voor de coördinator.</div>
+        </div>
+      </div>
+
       <div class="section-lbl">Beschikbaarheid</div>
       <div class="card">
         <div class="form-group" style="margin-bottom:0">
@@ -954,7 +971,6 @@ function loadSupabase(cb) {
 
       <!-- VRIJWILLIGERS BEHEER -->
       <div class="tabpanel" id="ctab-people">
-        <button class="btn" style="margin-bottom:16px" onclick="openModal('modal-invite')">+ Vrijwilliger uitnodigen</button>
         <div id="coord-volunteers-list">
           <div class="loading"><div class="spinner"></div>Laden...</div>
         </div>
@@ -1691,6 +1707,7 @@ async function loadCoordVolunteers() {
         <div class="row-info">
           <div class="title">${v.name}</div>
           <div class="sub">${v.email}</div>
+          ${v.phone ? `<div class="sub">&#128222; ${v.phone}</div>` : ''}
           <div style="font-size:11px;margin-top:3px">
             <span class="badge ${v.role === 'coordinator' ? 'badge-profile' : 'badge-open'}">${v.role === 'coordinator' ? 'Coordinator' : 'Vrijwilliger'}</span>
           </div>
@@ -1784,7 +1801,36 @@ function deleteVolunteerData() {
 // ---
 // PROFIEL
 // ---
-function saveProfile() {
+async function saveProfile() {
+  const firstname = document.getElementById('profile-firstname').value.trim();
+  const lastname = document.getElementById('profile-lastname').value.trim();
+  const days = document.getElementById('profile-days').value.trim();
+  const maxTasks = document.getElementById('profile-max-tasks').value;
+  const phone = document.getElementById('profile-phone').value.trim();
+  const taskTypes = Array.from(document.querySelectorAll('#profile-task-types input:checked')).map(cb => cb.value);
+  const fullName = [firstname, lastname].filter(Boolean).join(' ') || null;
+
+  if (!supabase || !currentUser) { showToast('Profiel opgeslagen'); return; }
+
+  const updates = {
+    days, max_tasks_per_month: parseInt(maxTasks),
+    task_types: taskTypes, phone,
+    last_active: new Date().toISOString()
+  };
+  if (fullName) updates.name = fullName;
+
+  const { error } = await supabase.from('profiles').update(updates).eq('id', currentUser.id);
+
+  if (error) { showToast('Fout: ' + error.message); return; }
+
+  // Update avatar met nieuwe naam
+  if (fullName) {
+    const initials = fullName.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('nav-avatar').textContent = initials;
+    document.getElementById('profile-name').textContent = fullName;
+    document.getElementById('profile-avatar-lg').textContent = initials;
+  }
+
   showToast('Profiel opgeslagen');
 }
 
@@ -1868,7 +1914,36 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-function saveProfile() {
+async function saveProfile() {
+  const firstname = document.getElementById('profile-firstname').value.trim();
+  const lastname = document.getElementById('profile-lastname').value.trim();
+  const days = document.getElementById('profile-days').value.trim();
+  const maxTasks = document.getElementById('profile-max-tasks').value;
+  const phone = document.getElementById('profile-phone').value.trim();
+  const taskTypes = Array.from(document.querySelectorAll('#profile-task-types input:checked')).map(cb => cb.value);
+  const fullName = [firstname, lastname].filter(Boolean).join(' ') || null;
+
+  if (!supabase || !currentUser) { showToast('Profiel opgeslagen'); return; }
+
+  const updates = {
+    days, max_tasks_per_month: parseInt(maxTasks),
+    task_types: taskTypes, phone,
+    last_active: new Date().toISOString()
+  };
+  if (fullName) updates.name = fullName;
+
+  const { error } = await supabase.from('profiles').update(updates).eq('id', currentUser.id);
+
+  if (error) { showToast('Fout: ' + error.message); return; }
+
+  // Update avatar met nieuwe naam
+  if (fullName) {
+    const initials = fullName.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('nav-avatar').textContent = initials;
+    document.getElementById('profile-name').textContent = fullName;
+    document.getElementById('profile-avatar-lg').textContent = initials;
+  }
+
   showToast('Profiel opgeslagen');
 }
 
