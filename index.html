@@ -1675,7 +1675,7 @@ async function loadCoordVolunteers() {
   const el = document.getElementById('coord-volunteers-list');
   let vols = isDemo ? DEMO_VOLUNTEERS : [];
   if (!isDemo) {
-    const { data } = await supabase.from('profiles').select('id, name, email, role, task_types, days, last_active').order('name');
+    const { data } = await supabase.rpc('get_all_profiles');
     vols = data || [];
   }
   document.getElementById('coord-stat-volunteers').textContent = vols.length;
