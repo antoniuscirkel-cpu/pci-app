@@ -1786,6 +1786,55 @@ async function deleteTaskData(id) {
   showToast('Persoonsgegevens verwijderd'); loadAvgCleanup();
 }
 
+async function loadArchief() {
+  const el = document.getElementById('archief-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
+
+  let taken = [];
+  if (isDemo) {
+    taken = demoTasks.filter(t => t.status === 'done');
+  } else {
+    const { data, error } = await supabase.from('tasks')
+      .select('id,type,description,date,assigned_to,completed_at')
+      .eq('status','done')
+      .order('completed_at', { ascending: false });
+    if (error) { el.innerHTML = '<div class="empty"><p>Fout bij laden archief.</p></div>'; return; }
+    taken = data || [];
+  }
+
+  if (!taken.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128193;</div><p>Nog geen afgeronde taken.</p></div>';
+    return;
+  }
+
+  el.innerHTML = '<div class="section-lbl">Afgeronde taken (' + taken.length + ')</div>' +
+    taken.map(t => {
+      const dateStr = t.completed_at ? new Date(t.completed_at).toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'}) : '-';
+      return '<div class="card" style="margin-bottom:10px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+        '<div>' +
+        '<div style="font-size:12px;color:var(--clr-text-muted)">' + t.type + ' &bull; Afgerond op ' + dateStr + '</div>' +
+        '<div style="font-size:15px;font-weight:500;margin-top:2px">' + t.description + '</div>' +
+        (t.assigned_to ? '<div style="font-size:13px;color:var(--clr-accent);margin-top:3px">' + t.assigned_to + '</div>' : '') +
+        '</div>' +
+        '<button class="btn btn-danger" style="width:auto;padding:6px 10px;font-size:12px;flex-shrink:0" onclick="verwijderUitArchief(' + t.id + ')">Verwijderen</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+}
+
+async function verwijderUitArchief(id) {
+  if (!confirm('Wil je deze taak permanent verwijderen uit het archief?')) return;
+  if (isDemo) {
+    demoTasks = demoTasks.filter(t => t.id !== id);
+    showToast('Taak verwijderd'); loadArchief(); return;
+  }
+  const { error } = await supabase.from('tasks').delete().eq('id', id);
+  if (error) { showToast('Fout: ' + error.message); return; }
+  showToast('Taak verwijderd uit archief'); loadArchief();
+}
+
 function toggleConsent(el) {
   const cb = el.querySelector('input[type=checkbox]');
   setTimeout(() => { cb.checked = !cb.checked; }, 0);
