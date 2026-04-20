@@ -5,7 +5,7 @@
 // E-mail bevestiging loopt via Supabase // Vervang met jouw Brevo API key
 const COORD_EMAIL   = 'antonius.cirkel@gmail.com'; // E-mail van de coördinator
 
-const SUPABASE_URL  = 'https://rtdqgaphhjrwcetrtxtc.supabase.com';
+const SUPABASE_URL  = 'https://rtdqgaphhjrwcetrtxtc.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0ZHFnYXBoaGpyd2NldHJ0eHRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2ODMwMzksImV4cCI6MjA5MjI1OTAzOX0.g6gotmAaCb2eg3bVfVypHXTD1TFbVnzzWIUt6naJ6eY';
 
 // ---
