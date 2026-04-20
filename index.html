@@ -166,7 +166,7 @@ function loadSupabase(cb) {
       </div>
 
       <button class="btn btn-primary" onclick="createTask()">Taak aanmaken</button>
-      <button class="btn btn-ghost" onclick="closeModal('modal-new-task')">Annuleren</button>
+      <button class="btn btn-ghost" onclick="resetTaskForm();closeModal('modal-new-task')">Annuleren</button>
     </div>
   </div>
 
@@ -531,7 +531,7 @@ function loadSupabase(cb) {
           </div>
         </div>
 
-        <button class="btn btn-primary" style="margin-bottom:16px" onclick="openModal('modal-new-task')">+ Nieuwe taak aanmaken</button>
+        <button class="btn btn-primary" style="margin-bottom:16px" onclick="resetTaskForm();openModal('modal-new-task')">+ Nieuwe taak aanmaken</button>
 
         <div id="coord-tasks-list">
           <div class="loading"><div class="spinner"></div>Laden...</div>
