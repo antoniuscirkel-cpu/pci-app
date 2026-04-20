@@ -308,7 +308,7 @@ async function loadTasks() {
     tasks = demoTasks.filter(t => t.status === 'open');
   } else {
     const { data, error } = await supabase.from('tasks')
-      .select('id,type,description,date,duration,profile,urgency,notes,status')
+      .select('id,type,description,date,duration,urgency,notes,status')
       .eq('status','open').order('date');
     if (error) { el.innerHTML = '<div class="empty"><p>Taken konden niet worden geladen.</p></div>'; return; }
     tasks = data;
