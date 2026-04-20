@@ -760,19 +760,19 @@ async function loadArchief() {
     return;
   }
 
-  el.innerHTML = '<div class="section-lbl">Afgeronde taken (' + taken.length + ')</div>' +
+  el.innerHTML = `<div class="section-lbl">Afgeronde taken (${taken.length})</div>` +
     taken.map(t => {
       const dateStr = t.completed_at ? new Date(t.completed_at).toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'}) : '-';
-      return '<div class="card" style="margin-bottom:10px">' +
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
-        '<div>' +
-        '<div style="font-size:12px;color:var(--clr-text-muted)">' + t.type + ' &bull; Afgerond op ' + dateStr + '</div>' +
-        '<div style="font-size:15px;font-weight:500;margin-top:2px">' + t.description + '</div>' +
-        (t.assigned_to ? '<div style="font-size:13px;color:var(--clr-accent);margin-top:3px">' + t.assigned_to + '</div>' : '') +
-        '</div>' +
-        '<button class="btn btn-danger" style="width:auto;padding:6px 10px;font-size:12px;flex-shrink:0" onclick="verwijderUitArchief(' + t.id + ')">Verwijderen</button>' +
-        '</div>' +
-        '</div>';
+      return `<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <div style="font-size:12px;color:var(--clr-text-muted)">${t.type} &bull; Afgerond op ${dateStr}</div>
+            <div style="font-size:15px;font-weight:500;margin-top:2px">${t.description || '-'}</div>
+            ${t.assigned_to ? `<div style="font-size:13px;color:var(--clr-accent);margin-top:3px">${t.assigned_to}</div>` : ''}
+          </div>
+          <button class="btn btn-danger" style="width:auto;padding:6px 10px;font-size:12px;flex-shrink:0" onclick="verwijderUitArchief('${t.id}')">Verwijderen</button>
+        </div>
+      </div>`;
     }).join('');
 }
 
