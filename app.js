@@ -373,7 +373,6 @@ function openTaskDetail(id) {
   document.getElementById('detail-date').textContent =
     new Date(task.date).toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
   document.getElementById('detail-duration').textContent = task.duration;
-  document.getElementById('detail-profile').textContent = task.profile;
   document.getElementById('detail-notes').textContent = task.notes || 'Geen verdere toelichting.';
 
   const badge = document.getElementById('detail-badge');
@@ -400,7 +399,6 @@ async function loadTaskFromDB(id) {
   document.getElementById('detail-date').textContent =
     new Date(data.date).toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
   document.getElementById('detail-duration').textContent = data.duration;
-  document.getElementById('detail-profile').textContent = data.profile;
   document.getElementById('detail-notes').textContent = data.notes || '-';
   document.getElementById('detail-private-section').style.display = isMine ? 'block' : 'none';
   document.getElementById('detail-action-section').style.display = isMine ? 'none' : 'block';
