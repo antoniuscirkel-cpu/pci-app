@@ -250,7 +250,7 @@ function showOtpStep(step) {
 async function verifyOtp() {
   const email = document.getElementById('login-email').value.trim();
   const token = document.getElementById('login-otp').value.trim();
-  if (!token || token.length < 8) { showToast('Voer de 8-cijferige code in'); return; }
+  if (!token || token.length < 6) { showToast('Voer de 6-cijferige code in'); return; }
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
   if (error) { showToast('Ongeldige code: ' + error.message); return; }
   if (data && data.session) {
