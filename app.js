@@ -499,7 +499,7 @@ async function loadCoordTasks() {
           <div>
             <div style="font-size:12px;color:var(--clr-text-muted)">${t.type} &bull; ${dateStr}</div>
             <div style="font-size:15px;font-weight:500;margin-top:2px">${t.description}</div>
-            ${t.assigned_to ? `<div style="font-size:12px;color:var(--clr-accent);margin-top:3px">${t.assigned_to}</div>` : ''}
+            ${t.assigned_to ? `<div style="font-size:12px;color:var(--clr-accent);margin-top:3px">Aangenomen door: ${t.assigned_to}</div>` : ''}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
             <span class="badge ${statusClass}">${statusLabel}</span>
@@ -636,14 +636,26 @@ async function markDone(id) {
 async function loadCoordVolunteers() {
   const el = document.getElementById('coord-volunteers-list');
   let vols = isDemo ? DEMO_VOLUNTEERS : [];
+  let taskStats = {};
   if (!isDemo) {
-    const { data } = await supabase.rpc('get_all_profiles');
-    vols = data || [];
+    const [volsResult, tasksResult] = await Promise.all([
+      supabase.rpc('get_all_profiles'),
+      supabase.from('tasks').select('assigned_to,status')
+    ]);
+    vols = volsResult.data || [];
+    (tasksResult.data || []).forEach(t => {
+      if (!t.assigned_to) return;
+      if (!taskStats[t.assigned_to]) taskStats[t.assigned_to] = { done: 0, active: 0 };
+      if (t.status === 'done')     taskStats[t.assigned_to].done++;
+      if (t.status === 'assigned') taskStats[t.assigned_to].active++;
+    });
   }
   document.getElementById('coord-stat-volunteers').textContent = vols.length;
   if (!vols.length) { el.innerHTML = '<div class="empty"><p>Nog geen vrijwilligers in de pool.</p></div>'; return; }
   const colors = ['green','blue','amber','red'];
-  el.innerHTML = vols.map((v,i) => `
+  el.innerHTML = vols.map((v,i) => {
+    const s = taskStats[v.email] || { done: 0, active: 0 };
+    return `
     <div class="card" style="margin-bottom:10px">
       <div class="row">
         <div class="avatar av-md av-${v.color || colors[i%4]}">${v.initials || v.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}</div>
@@ -654,6 +666,9 @@ async function loadCoordVolunteers() {
           <div style="font-size:11px;margin-top:3px">
             <span class="badge ${v.role === 'coordinator' ? 'badge-profile' : 'badge-open'}">${v.role === 'coordinator' ? 'Coordinator' : 'Vrijwilliger'}</span>
           </div>
+          <div style="font-size:12px;color:var(--clr-text-muted);margin-top:6px">
+            &#10003; ${s.done} afgerond &nbsp;&bull;&nbsp; ${s.active} actief
+          </div>
           <div class="tag-row" style="margin-top:5px">
             ${(v.task_types||[]).map(tt=>`<span class="tag">${tt}</span>`).join('')}
           </div>
@@ -662,7 +677,8 @@ async function loadCoordVolunteers() {
           ${v.role === 'coordinator' ? 'Vrijwilliger maken' : 'Coordinator maken'}
         </button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function wisselRol(id, huidigeRol, email) {
