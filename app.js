@@ -5,8 +5,8 @@
 // E-mail bevestiging loopt via Supabase // Vervang met jouw Brevo API key
 const COORD_EMAIL   = 'antonius.cirkel@gmail.com'; // E-mail van de coördinator
 
-const SUPABASE_URL  = 'https://xmjlvvamroilwhpdsuha.supabase.co';
-const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhtamx2dmFtcm9pbHdocGRzdWhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzM3MDYsImV4cCI6MjA4OTUwOTcwNn0.Giuu-0LEmbpPeYGVqdnLaR90r6iOp-LH0jxZ0oesIpU';
+const SUPABASE_URL  = 'https://rtdqgaphhjrwcetrtxtc.supabase.com';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0ZHFnYXBoaGpyd2NldHJ0eHRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2ODMwMzksImV4cCI6MjA5MjI1OTAzOX0.g6gotmAaCb2eg3bVfVypHXTD1TFbVnzzWIUt6naJ6eY';
 
 // ---
 // DEMO DATA (wordt gebruikt als Supabase niet is ingesteld)
@@ -288,7 +288,6 @@ async function loadProfileData() {
     if (label) label.classList.toggle('checked', cb.checked);
   });
 }
-
 function logout() {
   if (supabase) supabase.auth.signOut();
   currentUser = null; isDemo = false;
@@ -892,7 +891,6 @@ async function loadProfileData() {
     if (label) label.classList.toggle('checked', cb.checked);
   });
 }
-
 function logout() {
   if (supabase) supabase.auth.signOut();
   currentUser = null; isDemo = false;
