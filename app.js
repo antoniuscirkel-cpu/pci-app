@@ -349,7 +349,7 @@ function taskCard(t, isMine) {
                      isMine ? 'Aangenomen' : 'Open';
   const dateStr = t.date ? new Date(t.date).toLocaleDateString('nl-NL',{day:'numeric',month:'long'}) : '-';
   return `
-    <div class="card card-clickable" onclick="openTaskDetail(${t.id})" style="margin-bottom:10px">
+    <div class="card card-clickable" onclick="openTaskDetail('${t.id}')" style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div>
           <div style="font-size:12px;color:var(--clr-text-muted);margin-bottom:2px">${t.type}</div>
@@ -519,10 +519,10 @@ async function loadCoordTasks() {
           </div>
         </div>
         ${t.status === 'assigned' ?
-          `<button class="btn" style="margin-top:10px;padding:8px;font-size:13px" onclick="markDone(${t.id})">Markeren als afgerond</button>` : ''}
+          `<button class="btn" style="margin-top:10px;padding:8px;font-size:13px" onclick="markDone('${t.id}')">Markeren als afgerond</button>` : ''}
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn" style="flex:1;padding:8px;font-size:13px" onclick="editTask(${t.id})">Bewerken</button>
-          <button class="btn btn-danger" style="flex:1;padding:8px;font-size:13px" onclick="deleteTask(${t.id})">Verwijderen</button>
+          <button class="btn" style="flex:1;padding:8px;font-size:13px" onclick="editTask('${t.id}')">Bewerken</button>
+          <button class="btn btn-danger" style="flex:1;padding:8px;font-size:13px" onclick="deleteTask('${t.id}')">Verwijderen</button>
         </div>
       </div>`;
   }).join('');
@@ -731,7 +731,7 @@ async function loadAvgCleanup() {
         <div class="avg-label">${t.description}</div>
         <div class="avg-sub">Afgerond op ${new Date(t.completed_at).toLocaleDateString('nl-NL')}</div>
       </div>
-      <button class="btn btn-danger" style="width:auto;padding:6px 12px;font-size:12px" onclick="deleteTaskData(${t.id})">Verwijderen</button>
+      <button class="btn btn-danger" style="width:auto;padding:6px 12px;font-size:12px" onclick="deleteTaskData('${t.id}')">Verwijderen</button>
     </div>`).join('');
 }
 
