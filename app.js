@@ -438,17 +438,7 @@ async function confirmTask() {
 }
 
 async function stuurBevestigingsmail(task) {
-  // Bevestiging wordt opgeslagen in de database
-  // De coordinator ziet de aanmelding in het beheerscherm
-  const dateStr = task.date ? new Date(task.date).toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'}) : '-';
-  await supabase.from('notifications').insert({
-    type: 'taak_aangenomen',
-    task_id: task.id,
-    volunteer_email: currentUser.email,
-    coordinator_email: COORD_EMAIL,
-    message: currentUser.email + ' heeft zich aangemeld voor ' + task.type + ' op ' + dateStr
-  }).select();
-  // Negeer fouten als de tabel niet bestaat
+  // E-mail wordt verstuurd via de Supabase database trigger (notify_volunteer_accepted)
 }
 
 async function vrijwilligerMarkeerAfgerond(id) {
