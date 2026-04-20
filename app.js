@@ -58,6 +58,7 @@ const DEMO_VOLUNTEERS = [
 // ---
 let supabase = null;
 let currentUser = null;
+let currentRole = 'volunteer';
 let isDemo = false;
 let currentTaskId = null;
 let demoTasks = [...DEMO_TASKS];
@@ -166,6 +167,7 @@ function enterApp() {
     supabase.from('profiles').select('role').eq('id', currentUser.id).single()
       .then(({ data }) => {
         const role = data?.role || 'volunteer';
+        currentRole = role;
         if (role === 'coordinator') {
           document.getElementById('nav-beheer-btn').style.display = '';
           document.getElementById('nav-beheer-btn2').style.display = '';
@@ -381,7 +383,7 @@ function openTaskDetail(id) {
 
   const isMine = task.assigned_to === currentUser?.email || task.assigned_to === DEMO_USER.email;
   document.getElementById('detail-private-section').style.display = isMine ? 'block' : 'none';
-  document.getElementById('detail-action-section').style.display = isMine ? 'none' : 'block';
+  document.getElementById('detail-action-section').style.display = (isMine || currentRole === 'coordinator') ? 'none' : 'block';
   if (isMine) {
     document.getElementById('detail-private-name').textContent = task.private_name;
     document.getElementById('detail-private-address').textContent = task.private_address;
@@ -401,7 +403,7 @@ async function loadTaskFromDB(id) {
   document.getElementById('detail-duration').textContent = data.duration;
   document.getElementById('detail-notes').textContent = data.notes || '-';
   document.getElementById('detail-private-section').style.display = isMine ? 'block' : 'none';
-  document.getElementById('detail-action-section').style.display = isMine ? 'none' : 'block';
+  document.getElementById('detail-action-section').style.display = (isMine || currentRole === 'coordinator') ? 'none' : 'block';
   if (isMine) {
     document.getElementById('detail-private-name').textContent = data.private_name || '-';
     document.getElementById('detail-private-address').textContent = data.private_address || '-';
