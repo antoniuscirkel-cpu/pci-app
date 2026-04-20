@@ -566,12 +566,12 @@ async function createTask() {
   let error;
   if (isEdit) {
     ({ error } = await supabase.from('tasks').update({
-      type, description: desc, date, duration: dur, notes, profile, urgency,
+      type, description: desc, date, duration: dur, notes, urgency,
       private_name: pName, private_address: pAddr, private_phone: pPhone
     }).eq('id', editId));
   } else {
     ({ error } = await supabase.from('tasks').insert({
-      type, description: desc, date, duration: dur, notes, profile, urgency,
+      type, description: desc, date, duration: dur, notes, urgency,
       status: 'open', created_by: currentUser.email,
       private_name: pName, private_address: pAddr, private_phone: pPhone
     }));
