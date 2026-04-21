@@ -795,13 +795,21 @@ async function verwijderUitArchief(id) {
   showToast('Taak verwijderd uit archief'); loadArchief();
 }
 
+function updateAvgBtn() {
+  const cb1 = document.getElementById('avg-cb-1');
+  const cb2 = document.getElementById('avg-cb-2');
+  const btn = document.getElementById('btn-avg-akkoord');
+  if (!btn) return;
+  const beide = cb1.checked && cb2.checked;
+  btn.disabled = !beide;
+  btn.style.opacity = beide ? '1' : '0.45';
+  btn.style.cursor  = beide ? 'pointer' : 'not-allowed';
+}
+
 function bevestigAvg() {
   const cb1 = document.getElementById('avg-cb-1');
   const cb2 = document.getElementById('avg-cb-2');
-  if (!cb1.checked || !cb2.checked) {
-    showToast('Vink beide vakjes aan om door te gaan');
-    return;
-  }
+  if (!cb1.checked || !cb2.checked) return;
   localStorage.setItem('avg_akkoord_' + currentUser.email, 'ja');
   closeModal('modal-avg');
 }
@@ -809,8 +817,23 @@ function bevestigAvg() {
 function checkAvgToestemming() {
   if (!currentUser) return;
   const akkoord = localStorage.getItem('avg_akkoord_' + currentUser.email);
-  if (!akkoord) openModal('modal-avg');
+  if (!akkoord) {
+    // Checkboxen resetten en knop uitschakelen bij elke keer openen
+    ['avg-cb-1', 'avg-cb-2'].forEach(id => {
+      const cb = document.getElementById(id);
+      if (cb) cb.checked = false;
+    });
+    updateAvgBtn();
+    openModal('modal-avg');
+  }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  ['avg-cb-1', 'avg-cb-2'].forEach(id => {
+    const cb = document.getElementById(id);
+    if (cb) cb.addEventListener('change', updateAvgBtn);
+  });
+});
 
 function initCheckboxes() {
   document.querySelectorAll('.checkbox-item').forEach(item => {
