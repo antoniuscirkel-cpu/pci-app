@@ -234,12 +234,10 @@ async function sendOtp() {
   const email = document.getElementById('login-email').value.trim();
   if (!email) { showToast('Voer een e-mailadres in'); return; }
   if (!supabase) { showToast('Supabase niet ingesteld. Gebruik demo-modus.'); return; }
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {}
-  });
+  const { error } = await supabase.auth.signInWithOtp({ email, options: {} });
   if (error) { showToast('Fout: ' + error.message); return; }
   sessionStorage.setItem('otp_pending_email', email);
+  sessionStorage.setItem('otp_sent_at', Date.now().toString());
   showOtpStep(2);
   showToast('Code verstuurd naar ' + email);
 }
@@ -247,6 +245,10 @@ async function sendOtp() {
 function showOtpStep(step) {
   document.getElementById('login-step-1').style.display = step === 1 ? 'block' : 'none';
   document.getElementById('login-step-2').style.display = step === 2 ? 'block' : 'none';
+  if (step === 1) {
+    sessionStorage.removeItem('otp_pending_email');
+    sessionStorage.removeItem('otp_sent_at');
+  }
   if (step === 2) setTimeout(() => document.getElementById('login-otp').focus(), 100);
 }
 
@@ -260,6 +262,7 @@ async function verifyOtp() {
   if (error) { showToast('Ongeldige code: ' + error.message); return; }
   if (data && data.session) {
     sessionStorage.removeItem('otp_pending_email');
+    sessionStorage.removeItem('otp_sent_at');
     currentUser = data.session.user;
     enterApp();
   }
@@ -839,12 +842,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cb) cb.addEventListener('change', updateAvgBtn);
   });
 
-  // Herstel OTP-stap na herladen (bijv. na wisselen naar e-mailapp)
+  // Herstel OTP-stap na herladen (bijv. na wisselen naar e-mailapp op mobiel)
   const pendingEmail = sessionStorage.getItem('otp_pending_email');
-  if (pendingEmail) {
+  const sentAt = parseInt(sessionStorage.getItem('otp_sent_at') || '0');
+  const leeftijdMinuten = (Date.now() - sentAt) / 60000;
+
+  if (pendingEmail && leeftijdMinuten < 55) {
+    // Code is recent verstuurd en nog geldig — herstel stap 2
     const emailField = document.getElementById('login-email');
     if (emailField) emailField.value = pendingEmail;
     showOtpStep(2);
+  } else if (pendingEmail) {
+    // Code verlopen — e-mailadres alvast invullen, blijf op stap 1
+    const emailField = document.getElementById('login-email');
+    if (emailField) emailField.value = pendingEmail;
+    sessionStorage.removeItem('otp_pending_email');
+    sessionStorage.removeItem('otp_sent_at');
   }
 });
 
