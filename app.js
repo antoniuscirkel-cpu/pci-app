@@ -239,6 +239,7 @@ async function sendOtp() {
     options: {}
   });
   if (error) { showToast('Fout: ' + error.message); return; }
+  sessionStorage.setItem('otp_pending_email', email);
   showOtpStep(2);
   showToast('Code verstuurd naar ' + email);
 }
@@ -250,12 +251,15 @@ function showOtpStep(step) {
 }
 
 async function verifyOtp() {
-  const email = document.getElementById('login-email').value.trim();
+  const stored = sessionStorage.getItem('otp_pending_email');
+  const emailField = document.getElementById('login-email').value.trim();
+  const email = emailField || stored;
   const token = document.getElementById('login-otp').value.trim();
   if (!token || token.length < 6) { showToast('Voer de 6-cijferige code in'); return; }
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
   if (error) { showToast('Ongeldige code: ' + error.message); return; }
   if (data && data.session) {
+    sessionStorage.removeItem('otp_pending_email');
     currentUser = data.session.user;
     enterApp();
   }
@@ -829,10 +833,19 @@ function checkAvgToestemming() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // AVG checkboxen
   ['avg-cb-1', 'avg-cb-2'].forEach(id => {
     const cb = document.getElementById(id);
     if (cb) cb.addEventListener('change', updateAvgBtn);
   });
+
+  // Herstel OTP-stap na herladen (bijv. na wisselen naar e-mailapp)
+  const pendingEmail = sessionStorage.getItem('otp_pending_email');
+  if (pendingEmail) {
+    const emailField = document.getElementById('login-email');
+    if (emailField) emailField.value = pendingEmail;
+    showOtpStep(2);
+  }
 });
 
 function initCheckboxes() {
