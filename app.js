@@ -795,11 +795,6 @@ async function verwijderUitArchief(id) {
   showToast('Taak verwijderd uit archief'); loadArchief();
 }
 
-function toggleConsent(el) {
-  const cb = el.querySelector('input[type=checkbox]');
-  setTimeout(() => { cb.checked = !cb.checked; }, 0);
-}
-
 function bevestigAvg() {
   const cb1 = document.getElementById('avg-cb-1');
   const cb2 = document.getElementById('avg-cb-2');
